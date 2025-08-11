@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="导读在 fastapi 中，API 最常见的情况是批量更新数据，一个逻辑层的函数可能包含多次数据库交互，有新增数据、更新数据逻辑，那么在保证数据的一致性方面应该怎么做呢？ 下面我将详细说明在 FastAPI 中实现批量更新的两种主要方式，并提供完整的代码示例。 1. 使用数据库事务实现批量更新这种方式通过数据库事务保证所有更新操作要么全部成功，要么全部失败。 完整示例代码1234567891011">
+<meta property="og:type" content="article">
+<meta property="og:title" content="fastapi中批量更新数据怎么保证数据的一致性">
+<meta property="og:url" content="http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/index.html">
+<meta property="og:site_name" content="Hope 的博客">
+<meta property="og:description" content="导读在 fastapi 中，API 最常见的情况是批量更新数据，一个逻辑层的函数可能包含多次数据库交互，有新增数据、更新数据逻辑，那么在保证数据的一致性方面应该怎么做呢？ 下面我将详细说明在 FastAPI 中实现批量更新的两种主要方式，并提供完整的代码示例。 1. 使用数据库事务实现批量更新这种方式通过数据库事务保证所有更新操作要么全部成功，要么全部失败。 完整示例代码1234567891011">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-08-09T06:11:00.000Z">
+<meta property="article:modified_time" content="2025-08-11T06:11:27.053Z">
+<meta property="article:author" content="Hope">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>fastapi中批量更新数据怎么保证数据的一致性</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/probberechts">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2025/08/10/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/&text=fastapi中批量更新数据怎么保证数据的一致性"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/&title=fastapi中批量更新数据怎么保证数据的一致性"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/&is_video=false&description=fastapi中批量更新数据怎么保证数据的一致性"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=fastapi中批量更新数据怎么保证数据的一致性&body=Check out this article: http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/&title=fastapi中批量更新数据怎么保证数据的一致性"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/&title=fastapi中批量更新数据怎么保证数据的一致性"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/&title=fastapi中批量更新数据怎么保证数据的一致性"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/&title=fastapi中批量更新数据怎么保证数据的一致性"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/&name=fastapi中批量更新数据怎么保证数据的一致性&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/&t=fastapi中批量更新数据怎么保证数据的一致性"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%BD%BF%E7%94%A8%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1%E5%AE%9E%E7%8E%B0%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0"><span class="toc-number">1.1.</span> <span class="toc-text">1. 使用数据库事务实现批量更新</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%81"><span class="toc-number">1.1.1.</span> <span class="toc-text">完整示例代码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E7%82%B9%E8%AF%B4%E6%98%8E"><span class="toc-number">1.1.2.</span> <span class="toc-text">关键点说明</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%BD%BF%E7%94%A8%E6%89%B9%E9%87%8F%E6%93%8D%E4%BD%9C%E8%AF%AD%E5%8F%A5%E5%AE%9E%E7%8E%B0%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0"><span class="toc-number">1.2.</span> <span class="toc-text">2. 使用批量操作语句实现批量更新</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%812"><span class="toc-number">1.2.1.</span> <span class="toc-text">完整示例代码2</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E7%82%B9%E8%AF%B4%E6%98%8E2"><span class="toc-number">1.2.2.</span> <span class="toc-text">关键点说明2</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%A4%E7%A7%8D%E6%96%B9%E5%BC%8F%E7%9A%84%E6%AF%94%E8%BE%83"><span class="toc-number">2.</span> <span class="toc-text">两种方式的比较</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E7%A4%BA%E4%BE%8B"><span class="toc-number">3.</span> <span class="toc-text">测试示例</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        fastapi中批量更新数据怎么保证数据的一致性
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Hope</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-08-09T06:11:00.000Z" class="dt-published" itemprop="datePublished">2025-08-09</time>
+        
+      
+    </div>
+
+
+      
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="导读"><a href="#导读" class="headerlink" title="导读"></a>导读</h2><p>在 <code>fastapi</code> 中，<code>API</code> 最常见的情况是批量更新数据，一个逻辑层的函数可能包含多次数据库交互，有新增数据、更新数据逻辑，那么在保证数据的一致性方面应该怎么做呢？</p>
+<p>下面我将详细说明在 FastAPI 中实现批量更新的两种主要方式，并提供完整的代码示例。</p>
+<h3 id="1-使用数据库事务实现批量更新"><a href="#1-使用数据库事务实现批量更新" class="headerlink" title="1. 使用数据库事务实现批量更新"></a>1. 使用数据库事务实现批量更新</h3><p>这种方式通过数据库事务保证所有更新操作要么全部成功，要么全部失败。</p>
+<h4 id="完整示例代码"><a href="#完整示例代码" class="headerlink" title="完整示例代码"></a>完整示例代码</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, HTTPException, Depends</span><br><span class="line"><span class="keyword">from</span> pydantic <span class="keyword">import</span> BaseModel</span><br><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> <span class="type">List</span></span><br><span class="line"><span class="keyword">from</span> sqlalchemy <span class="keyword">import</span> create_engine, Column, Integer, String</span><br><span class="line"><span class="keyword">from</span> sqlalchemy.ext.declarative <span class="keyword">import</span> declarative_base</span><br><span class="line"><span class="keyword">from</span> sqlalchemy.orm <span class="keyword">import</span> sessionmaker, Session</span><br><span class="line"></span><br><span class="line"><span class="comment"># 数据库配置</span></span><br><span class="line">SQLALCHEMY_DATABASE_URL = <span class="string">&quot;sqlite:///./test.db&quot;</span></span><br><span class="line">engine = create_engine(SQLALCHEMY_DATABASE_URL)</span><br><span class="line">SessionLocal = sessionmaker(autocommit=<span class="literal">False</span>, autoflush=<span class="literal">False</span>, bind=engine)</span><br><span class="line"></span><br><span class="line">Base = declarative_base()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 数据库模型</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">User</span>(<span class="title class_ inherited__">Base</span>):</span><br><span class="line">    __tablename__ = <span class="string">&quot;users&quot;</span></span><br><span class="line">    <span class="built_in">id</span> = Column(Integer, primary_key=<span class="literal">True</span>, index=<span class="literal">True</span>)</span><br><span class="line">    name = Column(String(<span class="number">50</span>))</span><br><span class="line">    email = Column(String(<span class="number">50</span>))</span><br><span class="line">    status = Column(String(<span class="number">20</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建表</span></span><br><span class="line">Base.metadata.create_all(bind=engine)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Pydantic 模型</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">UserUpdate</span>(<span class="title class_ inherited__">BaseModel</span>):</span><br><span class="line">    <span class="built_in">id</span>: <span class="built_in">int</span></span><br><span class="line">    name: <span class="built_in">str</span> = <span class="literal">None</span></span><br><span class="line">    email: <span class="built_in">str</span> = <span class="literal">None</span></span><br><span class="line">    status: <span class="built_in">str</span> = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 依赖项 - 获取数据库会话</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_db</span>():</span><br><span class="line">    db = SessionLocal()</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">yield</span> db</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        db.close()</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.put(<span class="params"><span class="string">&quot;/users/bulk-update-transaction&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">bulk_update_users_transaction</span>(<span class="params"></span></span><br><span class="line"><span class="params">    users: <span class="type">List</span>[UserUpdate], </span></span><br><span class="line"><span class="params">    db: Session = Depends(<span class="params">get_db</span>)</span></span><br><span class="line"><span class="params"></span>):</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="comment"># 开始事务</span></span><br><span class="line">        db.begin()</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> user_data <span class="keyword">in</span> users:</span><br><span class="line">            <span class="comment"># 查询用户</span></span><br><span class="line">            user = db.query(User).<span class="built_in">filter</span>(User.<span class="built_in">id</span> == user_data.<span class="built_in">id</span>).first()</span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">not</span> user:</span><br><span class="line">                <span class="keyword">raise</span> HTTPException(status_code=<span class="number">404</span>, detail=<span class="string">f&quot;User with id <span class="subst">&#123;user_data.<span class="built_in">id</span>&#125;</span> not found&quot;</span>)</span><br><span class="line">            </span><br><span class="line">            <span class="comment"># 更新字段</span></span><br><span class="line">            <span class="keyword">if</span> user_data.name <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">                user.name = user_data.name</span><br><span class="line">            <span class="keyword">if</span> user_data.email <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">                user.email = user_data.email</span><br><span class="line">            <span class="keyword">if</span> user_data.status <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">                user.status = user_data.status</span><br><span class="line">            </span><br><span class="line">            <span class="comment"># 也可以使用 merge 方法</span></span><br><span class="line">            <span class="comment"># db.merge(user)</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 提交事务</span></span><br><span class="line">        db.commit()</span><br><span class="line">    <span class="keyword">except</span> HTTPException:</span><br><span class="line">        <span class="comment"># 已知异常直接抛出</span></span><br><span class="line">        db.rollback()</span><br><span class="line">        <span class="keyword">raise</span></span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="comment"># 其他异常回滚并返回错误</span></span><br><span class="line">        db.rollback()</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">500</span>, detail=<span class="built_in">str</span>(e))</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;Batch update completed successfully&quot;</span>, <span class="string">&quot;updated_count&quot;</span>: <span class="built_in">len</span>(users)&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="关键点说明"><a href="#关键点说明" class="headerlink" title="关键点说明"></a>关键点说明</h4><ol>
+<li><p><strong>事务管理</strong>：</p>
+<ul>
+<li><code>db.begin()</code> 显式开始事务</li>
+<li><code>db.commit()</code> 提交事务</li>
+<li><code>db.rollback()</code> 在异常时回滚</li>
+</ul>
+</li>
+<li><p><strong>错误处理</strong>：</p>
+<ul>
+<li>处理了用户不存在的场景</li>
+<li>捕获所有异常确保事务回滚</li>
+<li>返回适当的HTTP状态码</li>
+</ul>
+</li>
+<li><p><strong>原子性保证</strong>：</p>
+<ul>
+<li>所有更新要么全部成功，要么全部失败</li>
+<li>中间出错不会导致部分更新</li>
+</ul>
+</li>
+</ol>
+<h3 id="2-使用批量操作语句实现批量更新"><a href="#2-使用批量操作语句实现批量更新" class="headerlink" title="2. 使用批量操作语句实现批量更新"></a>2. 使用批量操作语句实现批量更新</h3><p>这种方式通过单个SQL语句执行批量更新，效率更高。</p>
+<h4 id="完整示例代码2"><a href="#完整示例代码2" class="headerlink" title="完整示例代码2"></a>完整示例代码2</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sqlalchemy <span class="keyword">import</span> update, bindparam</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.put(<span class="params"><span class="string">&quot;/users/bulk-update-bulk-statement&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">bulk_update_users_bulk_statement</span>(<span class="params"></span></span><br><span class="line"><span class="params">    users: <span class="type">List</span>[UserUpdate], </span></span><br><span class="line"><span class="params">    db: Session = Depends(<span class="params">get_db</span>)</span></span><br><span class="line"><span class="params"></span>):</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="comment"># 构建批量更新语句</span></span><br><span class="line">        stmt = (</span><br><span class="line">            update(User)</span><br><span class="line">            .where(User.<span class="built_in">id</span> == bindparam(<span class="string">&#x27;user_id&#x27;</span>))</span><br><span class="line">            .values(&#123;</span><br><span class="line">                User.name: bindparam(<span class="string">&#x27;user_name&#x27;</span>),</span><br><span class="line">                User.email: bindparam(<span class="string">&#x27;user_email&#x27;</span>),</span><br><span class="line">                User.status: bindparam(<span class="string">&#x27;user_status&#x27;</span>)</span><br><span class="line">            &#125;)</span><br><span class="line">        )</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 准备参数列表</span></span><br><span class="line">        params = []</span><br><span class="line">        <span class="keyword">for</span> user <span class="keyword">in</span> users:</span><br><span class="line">            param = &#123;</span><br><span class="line">                <span class="string">&#x27;user_id&#x27;</span>: user.<span class="built_in">id</span>,</span><br><span class="line">                <span class="string">&#x27;user_name&#x27;</span>: user.name,</span><br><span class="line">                <span class="string">&#x27;user_email&#x27;</span>: user.email,</span><br><span class="line">                <span class="string">&#x27;user_status&#x27;</span>: user.status</span><br><span class="line">            &#125;</span><br><span class="line">            params.append(param)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 执行批量更新</span></span><br><span class="line">        result = db.execute(stmt, params)</span><br><span class="line">        db.commit()</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 返回更新的行数</span></span><br><span class="line">        updated_count = result.rowcount</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        db.rollback()</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">500</span>, detail=<span class="built_in">str</span>(e))</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        <span class="string">&quot;message&quot;</span>: <span class="string">&quot;Batch update completed with bulk statement&quot;</span>,</span><br><span class="line">        <span class="string">&quot;updated_count&quot;</span>: updated_count</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="关键点说明2"><a href="#关键点说明2" class="headerlink" title="关键点说明2"></a>关键点说明2</h4><ol>
+<li><p><strong>批量SQL构建</strong>：</p>
+<ul>
+<li>使用 <code>update()</code> 和 <code>bindparam()</code> 构建参数化查询</li>
+<li>单个SQL语句处理所有更新</li>
+</ul>
+</li>
+<li><p><strong>参数准备</strong>：</p>
+<ul>
+<li>将输入数据转换为参数列表</li>
+<li>每个参数对应一个字典</li>
+</ul>
+</li>
+<li><p><strong>执行效率</strong>：</p>
+<ul>
+<li>相比循环更新，减少数据库往返次数</li>
+<li>数据库可以优化执行计划</li>
+</ul>
+</li>
+<li><p><strong>返回值</strong>：</p>
+<ul>
+<li>通过 <code>result.rowcount</code> 获取实际更新的行数</li>
+</ul>
+</li>
+</ol>
+<h2 id="两种方式的比较"><a href="#两种方式的比较" class="headerlink" title="两种方式的比较"></a>两种方式的比较</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>事务方式</th>
+<th>批量语句方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>实现复杂度</td>
+<td>简单直接</td>
+<td>需要构建SQL语句</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>中等（多次数据库调用）</td>
+<td>高（单次数据库调用）</td>
+</tr>
+<tr>
+<td>灵活性</td>
+<td>高（可处理复杂逻辑）</td>
+<td>中（适合简单字段更新）</td>
+</tr>
+<tr>
+<td>错误处理</td>
+<td>可以逐条检查</td>
+<td>批量处理，难以单独处理某条失败</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>需要复杂逻辑或验证的更新</td>
+<td>大批量简单字段更新</td>
+</tr>
+</tbody></table>
+<h2 id="测试示例"><a href="#测试示例" class="headerlink" title="测试示例"></a>测试示例</h2><p>你可以使用这样的请求体测试上述API：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;New Name 1&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;email&quot;</span><span class="punctuation">:</span> <span class="string">&quot;new1@example.com&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;status&quot;</span><span class="punctuation">:</span> <span class="string">&quot;active&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="number">2</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;New Name 2&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;email&quot;</span><span class="punctuation">:</span> <span class="string">&quot;new2@example.com&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;status&quot;</span><span class="punctuation">:</span> <span class="string">&quot;inactive&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+
+<p>实际业务中，根据你的具体需求选择合适的实现方式。</p>
+<ul>
+<li>对于需要复杂业务逻辑的更新，事务方式更合适；</li>
+<li>对于纯粹的大批量数据更新，批量语句方式性能更好。</li>
+</ul>
+<p>总之：在一个逻辑函数中处理事务，避免中间状态，确保原子性和一致性，尽量不要写一段逻辑提交一次，而是在逻辑函数结束时候提交或回滚一次。如果遇到高并发场景，还需要考虑锁策略。</p>
+<hr>
+<p>每日踩一坑，生活更轻松。</p>
+<p>本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/about/">关于</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/probberechts">项目</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%BD%BF%E7%94%A8%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1%E5%AE%9E%E7%8E%B0%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0"><span class="toc-number">1.1.</span> <span class="toc-text">1. 使用数据库事务实现批量更新</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%81"><span class="toc-number">1.1.1.</span> <span class="toc-text">完整示例代码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E7%82%B9%E8%AF%B4%E6%98%8E"><span class="toc-number">1.1.2.</span> <span class="toc-text">关键点说明</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%BD%BF%E7%94%A8%E6%89%B9%E9%87%8F%E6%93%8D%E4%BD%9C%E8%AF%AD%E5%8F%A5%E5%AE%9E%E7%8E%B0%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0"><span class="toc-number">1.2.</span> <span class="toc-text">2. 使用批量操作语句实现批量更新</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%812"><span class="toc-number">1.2.1.</span> <span class="toc-text">完整示例代码2</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E7%82%B9%E8%AF%B4%E6%98%8E2"><span class="toc-number">1.2.2.</span> <span class="toc-text">关键点说明2</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%A4%E7%A7%8D%E6%96%B9%E5%BC%8F%E7%9A%84%E6%AF%94%E8%BE%83"><span class="toc-number">2.</span> <span class="toc-text">两种方式的比较</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E7%A4%BA%E4%BE%8B"><span class="toc-number">3.</span> <span class="toc-text">测试示例</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/&text=fastapi中批量更新数据怎么保证数据的一致性"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/&title=fastapi中批量更新数据怎么保证数据的一致性"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/&is_video=false&description=fastapi中批量更新数据怎么保证数据的一致性"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=fastapi中批量更新数据怎么保证数据的一致性&body=Check out this article: http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/&title=fastapi中批量更新数据怎么保证数据的一致性"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/&title=fastapi中批量更新数据怎么保证数据的一致性"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/&title=fastapi中批量更新数据怎么保证数据的一致性"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/&title=fastapi中批量更新数据怎么保证数据的一致性"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/&name=fastapi中批量更新数据怎么保证数据的一致性&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/&t=fastapi中批量更新数据怎么保证数据的一致性"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2025
+    Hope
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/probberechts">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

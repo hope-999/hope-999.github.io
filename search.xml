@@ -1,37 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>fastapi中如何写webhook接口</title>
-    <url>/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/</url>
-    <content><![CDATA[导读在构建 CICD 的过程中，经常会用到一些工具，比如：Jenkins、GitLab、Coding 等。
-这些构建工具都有一个共同点：它们能支持 webHook 的触发。
-比如 gitlib 中设置当前 push 代码的时候触发 webhook。
-当我们配置了 webhook 以后，会在触发事件发生的时候，去请求一个自定义的 url。
-这样就丰富了我们在构建 CICD 的流程中，去处理更多的业务逻辑。
-webhook 如何自定义接口@router.post(&quot;/webhook/1.0.0&quot;, name=&quot;webhook&quot;)async def add_new(    request: Request,) -&gt; Any:    # 解析 Webhook 请求体的 JSON 数据    body = await request.body()    # 解析 JSON 数据    try:        data = json.loads(body.decode(&quot;utf-8&quot;))    except json.JSONDecodeError:        return Response(&quot;ok&quot;)    logger.info(f&quot;webhook的body=&#123;data&#125;&quot;)    # 这里添加业务逻辑    # ...    return Response(&quot;ok&quot;)
-
-说明
-请求方法定义为 post，一般要使用post方法。
-设置请求类型为 application&#x2F;json
-读取请求数据，并解析。body = await request.body()
-读取 json 数据,data = json.loads(body.decode(&quot;utf-8&quot;))，这里要注意异常的捕获，防止报错。
-在处理逻辑中，一般需要进行数据校验，避免接口报错。
-在需要使用日志信息时，要添加 logger。
-解析 body 中的参数。
-添加业务处理逻辑。
-返回 ok, 返回 ok 告诉 webhook 通知发送端，接口正常处理完成。这里要记住一定要返回 ok，否则会不停的触发事件。return Response(&quot;ok&quot;)
-
-如何测试？使用 curl 的 post 方式，带上 body 数据，示例：
-curl --location --request POST &#x27;http://127.0.0.1:9000/webhook/1.0.0&#x27; \--header &#x27;Content-Type: application/json&#x27; \--data-raw &#x27;&#123;&quot;object_kind&quot;: &quot;deployment&quot;, &quot;id&quot;: 123&#125;&#x27;
-
-
-每日踩一坑，生活更轻松。
-本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。
-]]></content>
-  </entry>
-  <entry>
     <title>fastapi中使用redis-pool连接池</title>
-    <url>/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/</url>
+    <url>/2025/08/10/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/</url>
     <content><![CDATA[导读在实际开发过程中，为了提升接口性能，我们经常会选择使用数据库连接池、redis 连接池等。
 通过连接池连接，提升效率，节省内存开销。同时通过将数据缓存到 redis 中，还可以减少网络 IO 开销。
 通常一个接口直接跟数据库交互，例如 MySQL，响应时间大概在 200ms ~ 500ms 左右。加上 redis 缓存之后，接口直接从缓存中读取，响应时间可以缩短到 10ms 左右，可以说是质的飞跃。
@@ -61,6 +32,141 @@ from fastapi import FastAPI, Dependsfrom deps import RedisPoolDepimport redisapp
 对于更复杂的应用，将业务逻辑封装到服务层
 考虑使用异步 Redis 客户端以提高性能, 例如 aioredis。这里有坑，慎用。。。
 使用环境变量管理配置
+
+
+每日踩一坑，生活更轻松。
+本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。
+]]></content>
+  </entry>
+  <entry>
+    <title>fastapi中批量更新数据怎么保证数据的一致性</title>
+    <url>/2025/08/09/fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/</url>
+    <content><![CDATA[导读在 fastapi 中，API 最常见的情况是批量更新数据，一个逻辑层的函数可能包含多次数据库交互，有新增数据、更新数据逻辑，那么在保证数据的一致性方面应该怎么做呢？
+下面我将详细说明在 FastAPI 中实现批量更新的两种主要方式，并提供完整的代码示例。
+1. 使用数据库事务实现批量更新这种方式通过数据库事务保证所有更新操作要么全部成功，要么全部失败。
+完整示例代码from fastapi import FastAPI, HTTPException, Dependsfrom pydantic import BaseModelfrom typing import Listfrom sqlalchemy import create_engine, Column, Integer, Stringfrom sqlalchemy.ext.declarative import declarative_basefrom sqlalchemy.orm import sessionmaker, Session# 数据库配置SQLALCHEMY_DATABASE_URL = &quot;sqlite:///./test.db&quot;engine = create_engine(SQLALCHEMY_DATABASE_URL)SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)Base = declarative_base()# 数据库模型class User(Base):    __tablename__ = &quot;users&quot;    id = Column(Integer, primary_key=True, index=True)    name = Column(String(50))    email = Column(String(50))    status = Column(String(20))# 创建表Base.metadata.create_all(bind=engine)# Pydantic 模型class UserUpdate(BaseModel):    id: int    name: str = None    email: str = None    status: str = Noneapp = FastAPI()# 依赖项 - 获取数据库会话def get_db():    db = SessionLocal()    try:        yield db    finally:        db.close()@app.put(&quot;/users/bulk-update-transaction&quot;)async def bulk_update_users_transaction(    users: List[UserUpdate],     db: Session = Depends(get_db)):    try:        # 开始事务        db.begin()                for user_data in users:            # 查询用户            user = db.query(User).filter(User.id == user_data.id).first()            if not user:                raise HTTPException(status_code=404, detail=f&quot;User with id &#123;user_data.id&#125; not found&quot;)                        # 更新字段            if user_data.name is not None:                user.name = user_data.name            if user_data.email is not None:                user.email = user_data.email            if user_data.status is not None:                user.status = user_data.status                        # 也可以使用 merge 方法            # db.merge(user)                # 提交事务        db.commit()    except HTTPException:        # 已知异常直接抛出        db.rollback()        raise    except Exception as e:        # 其他异常回滚并返回错误        db.rollback()        raise HTTPException(status_code=500, detail=str(e))        return &#123;&quot;message&quot;: &quot;Batch update completed successfully&quot;, &quot;updated_count&quot;: len(users)&#125;
+
+关键点说明
+事务管理：
+
+db.begin() 显式开始事务
+db.commit() 提交事务
+db.rollback() 在异常时回滚
+
+
+错误处理：
+
+处理了用户不存在的场景
+捕获所有异常确保事务回滚
+返回适当的HTTP状态码
+
+
+原子性保证：
+
+所有更新要么全部成功，要么全部失败
+中间出错不会导致部分更新
+
+
+
+2. 使用批量操作语句实现批量更新这种方式通过单个SQL语句执行批量更新，效率更高。
+完整示例代码2from sqlalchemy import update, bindparam@app.put(&quot;/users/bulk-update-bulk-statement&quot;)async def bulk_update_users_bulk_statement(    users: List[UserUpdate],     db: Session = Depends(get_db)):    try:        # 构建批量更新语句        stmt = (            update(User)            .where(User.id == bindparam(&#x27;user_id&#x27;))            .values(&#123;                User.name: bindparam(&#x27;user_name&#x27;),                User.email: bindparam(&#x27;user_email&#x27;),                User.status: bindparam(&#x27;user_status&#x27;)            &#125;)        )                # 准备参数列表        params = []        for user in users:            param = &#123;                &#x27;user_id&#x27;: user.id,                &#x27;user_name&#x27;: user.name,                &#x27;user_email&#x27;: user.email,                &#x27;user_status&#x27;: user.status            &#125;            params.append(param)                # 执行批量更新        result = db.execute(stmt, params)        db.commit()                # 返回更新的行数        updated_count = result.rowcount            except Exception as e:        db.rollback()        raise HTTPException(status_code=500, detail=str(e))        return &#123;        &quot;message&quot;: &quot;Batch update completed with bulk statement&quot;,        &quot;updated_count&quot;: updated_count    &#125;
+
+关键点说明2
+批量SQL构建：
+
+使用 update() 和 bindparam() 构建参数化查询
+单个SQL语句处理所有更新
+
+
+参数准备：
+
+将输入数据转换为参数列表
+每个参数对应一个字典
+
+
+执行效率：
+
+相比循环更新，减少数据库往返次数
+数据库可以优化执行计划
+
+
+返回值：
+
+通过 result.rowcount 获取实际更新的行数
+
+
+
+两种方式的比较
+
+
+特性
+事务方式
+批量语句方式
+
+
+
+实现复杂度
+简单直接
+需要构建SQL语句
+
+
+性能
+中等（多次数据库调用）
+高（单次数据库调用）
+
+
+灵活性
+高（可处理复杂逻辑）
+中（适合简单字段更新）
+
+
+错误处理
+可以逐条检查
+批量处理，难以单独处理某条失败
+
+
+适用场景
+需要复杂逻辑或验证的更新
+大批量简单字段更新
+
+
+测试示例你可以使用这样的请求体测试上述API：
+[    &#123;        &quot;id&quot;: 1,        &quot;name&quot;: &quot;New Name 1&quot;,        &quot;email&quot;: &quot;new1@example.com&quot;,        &quot;status&quot;: &quot;active&quot;    &#125;,    &#123;        &quot;id&quot;: 2,        &quot;name&quot;: &quot;New Name 2&quot;,        &quot;email&quot;: &quot;new2@example.com&quot;,        &quot;status&quot;: &quot;inactive&quot;    &#125;]
+
+实际业务中，根据你的具体需求选择合适的实现方式。
+
+对于需要复杂业务逻辑的更新，事务方式更合适；
+对于纯粹的大批量数据更新，批量语句方式性能更好。
+
+总之：在一个逻辑函数中处理事务，避免中间状态，确保原子性和一致性，尽量不要写一段逻辑提交一次，而是在逻辑函数结束时候提交或回滚一次。如果遇到高并发场景，还需要考虑锁策略。
+
+每日踩一坑，生活更轻松。
+本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。
+]]></content>
+  </entry>
+  <entry>
+    <title>fastapi中如何写webhook接口</title>
+    <url>/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/</url>
+    <content><![CDATA[导读在构建 CICD 的过程中，经常会用到一些工具，比如：Jenkins、GitLab、Coding 等。
+这些构建工具都有一个共同点：它们能支持 webHook 的触发。
+比如 gitlib 中设置当前 push 代码的时候触发 webhook。
+当我们配置了 webhook 以后，会在触发事件发生的时候，去请求一个自定义的 url。
+这样就丰富了我们在构建 CICD 的流程中，去处理更多的业务逻辑。
+webhook 如何自定义接口@router.post(&quot;/webhook/1.0.0&quot;, name=&quot;webhook&quot;)async def add_new(    request: Request,) -&gt; Any:    # 解析 Webhook 请求体的 JSON 数据    body = await request.body()    # 解析 JSON 数据    try:        data = json.loads(body.decode(&quot;utf-8&quot;))    except json.JSONDecodeError:        return Response(&quot;ok&quot;)    logger.info(f&quot;webhook的body=&#123;data&#125;&quot;)    # 这里添加业务逻辑    # ...    return Response(&quot;ok&quot;)
+
+说明
+请求方法定义为 post，一般要使用post方法。
+设置请求类型为 application&#x2F;json
+读取请求数据，并解析。body = await request.body()
+读取 json 数据,data = json.loads(body.decode(&quot;utf-8&quot;))，这里要注意异常的捕获，防止报错。
+在处理逻辑中，一般需要进行数据校验，避免接口报错。
+在需要使用日志信息时，要添加 logger。
+解析 body 中的参数。
+添加业务处理逻辑。
+返回 ok, 返回 ok 告诉 webhook 通知发送端，接口正常处理完成。这里要记住一定要返回 ok，否则会不停的触发事件。return Response(&quot;ok&quot;)
+
+如何测试？使用 curl 的 post 方式，带上 body 数据，示例：
+curl --location --request POST &#x27;http://127.0.0.1:9000/webhook/1.0.0&#x27; \--header &#x27;Content-Type: application/json&#x27; \--data-raw &#x27;&#123;&quot;object_kind&quot;: &quot;deployment&quot;, &quot;id&quot;: 123&#125;&#x27;
 
 
 每日踩一坑，生活更轻松。
