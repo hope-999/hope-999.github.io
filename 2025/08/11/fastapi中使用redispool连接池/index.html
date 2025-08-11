@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="导读在实际开发过程中，为了提升接口性能，我们经常会选择使用数据库连接池、redis 连接池等。 通过连接池连接，提升效率，节省内存开销。同时通过将数据缓存到 redis 中，还可以减少网络 IO 开销。 通常一个接口直接跟数据库交互，例如 MySQL，响应时间大概在 200ms ~ 500ms 左右。加上 redis 缓存之后，接口直接从缓存中读取，响应时间可以缩短到 10ms 左右，可以说是质的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="fastapi中使用redis-pool连接池">
+<meta property="og:url" content="http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/index.html">
+<meta property="og:site_name" content="Hope 的博客">
+<meta property="og:description" content="导读在实际开发过程中，为了提升接口性能，我们经常会选择使用数据库连接池、redis 连接池等。 通过连接池连接，提升效率，节省内存开销。同时通过将数据缓存到 redis 中，还可以减少网络 IO 开销。 通常一个接口直接跟数据库交互，例如 MySQL，响应时间大概在 200ms ~ 500ms 左右。加上 redis 缓存之后，接口直接从缓存中读取，响应时间可以缩短到 10ms 左右，可以说是质的">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-08-11T02:09:35.000Z">
+<meta property="article:modified_time" content="2025-08-11T02:10:16.142Z">
+<meta property="article:author" content="Hope">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>fastapi中使用redis-pool连接池</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/probberechts">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/&text=fastapi中使用redis-pool连接池"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/&title=fastapi中使用redis-pool连接池"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/&is_video=false&description=fastapi中使用redis-pool连接池"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=fastapi中使用redis-pool连接池&body=Check out this article: http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/&title=fastapi中使用redis-pool连接池"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/&title=fastapi中使用redis-pool连接池"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/&title=fastapi中使用redis-pool连接池"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/&title=fastapi中使用redis-pool连接池"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/&name=fastapi中使用redis-pool连接池&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/&t=fastapi中使用redis-pool连接池"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81%E5%AE%89%E8%A3%85%E5%BA%93"><span class="toc-number">1.1.</span> <span class="toc-text">1、安装库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%B7%BB%E5%8A%A0%E9%85%8D%E7%BD%AE"><span class="toc-number">1.2.</span> <span class="toc-text">2. 添加配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%B7%BB%E5%8A%A0-redis-%E8%BF%9E%E6%8E%A5%E6%B1%A0"><span class="toc-number">1.3.</span> <span class="toc-text">3. 添加 redis 连接池</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%88%9B%E5%BB%BAdeps"><span class="toc-number">1.4.</span> <span class="toc-text">4. 创建deps</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E4%BD%BF%E7%94%A8-RedisPoolDep-%E4%BE%9D%E8%B5%96%E9%A1%B9"><span class="toc-number">1.5.</span> <span class="toc-text">5. 使用 RedisPoolDep 依赖项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">2.</span> <span class="toc-text">总结</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        fastapi中使用redis-pool连接池
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Hope</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-08-11T02:09:35.000Z" class="dt-published" itemprop="datePublished">2025-08-11</time>
+        
+      
+    </div>
+
+
+      
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="导读"><a href="#导读" class="headerlink" title="导读"></a>导读</h2><p>在实际开发过程中，为了提升接口性能，我们经常会选择使用数据库连接池、redis 连接池等。</p>
+<p>通过连接池连接，提升效率，节省内存开销。同时通过将数据缓存到 <code>redis</code> 中，还可以减少网络 IO 开销。</p>
+<p>通常一个接口直接跟数据库交互，例如 MySQL，响应时间大概在 200ms ~ 500ms 左右。<br>加上 redis 缓存之后，接口直接从缓存中读取，响应时间可以缩短到 10ms 左右，可以说是质的飞跃。</p>
+<p>下面将介绍如何在 <code>FastAPI</code> 中使用 redis 连接池。</p>
+<h3 id="1、安装库"><a href="#1、安装库" class="headerlink" title="1、安装库"></a>1、安装库</h3><p>首先确保安装了必要的 Python 包：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install fastapi redis uvicorn</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-添加配置"><a href="#2-添加配置" class="headerlink" title="2. 添加配置"></a>2. 添加配置</h3><p>在根目录下，添加 <code>.env.dev</code> 文件，里面是项目相关配置。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">REDIS_HOST=<span class="string">&quot;192.168.201.200&quot;</span></span><br><span class="line">REDIS_PORT=<span class="string">&quot;6379&quot;</span></span><br><span class="line">REDIS_PASSWORD=<span class="string">&quot;&lt;PASSWORD&gt;&quot;</span></span><br><span class="line">REDIS_DB=<span class="string">&quot;9&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>在 <code>config.py</code> 文件中，增加如下代码，读取配置信息。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> Annotated, <span class="type">Any</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> pydantic <span class="keyword">import</span> (</span><br><span class="line">    AnyUrl,</span><br><span class="line">    BeforeValidator,</span><br><span class="line">    PostgresDsn,</span><br><span class="line">    computed_field,</span><br><span class="line">)</span><br><span class="line"><span class="keyword">from</span> pydantic_core <span class="keyword">import</span> MultiHostUrl</span><br><span class="line"><span class="keyword">from</span> pydantic_settings <span class="keyword">import</span> BaseSettings, SettingsConfigDict</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Settings</span>(<span class="title class_ inherited__">BaseSettings</span>):</span><br><span class="line">    <span class="keyword">if</span> os.getenv(<span class="string">&quot;APP_ENV&quot;</span>) == <span class="string">&quot;development&quot;</span> <span class="keyword">or</span> <span class="keyword">not</span> os.getenv(<span class="string">&quot;APP_ENV&quot;</span>):</span><br><span class="line">            model_config = SettingsConfigDict(</span><br><span class="line">                env_file=<span class="string">&quot;.env.dev&quot;</span>, env_ignore_empty=<span class="literal">True</span>, extra=<span class="string">&quot;ignore&quot;</span></span><br><span class="line">            )</span><br><span class="line">    <span class="keyword">if</span> os.getenv(<span class="string">&quot;APP_ENV&quot;</span>) == <span class="string">&quot;production&quot;</span>:</span><br><span class="line">        model_config = SettingsConfigDict(</span><br><span class="line">            env_file=<span class="string">&quot;/app/.env.production&quot;</span>, env_ignore_empty=<span class="literal">True</span>, extra=<span class="string">&quot;ignore&quot;</span></span><br><span class="line">        )</span><br><span class="line">    <span class="keyword">if</span> os.getenv(<span class="string">&quot;APP_ENV&quot;</span>) == <span class="string">&quot;test&quot;</span>:</span><br><span class="line">        model_config = SettingsConfigDict(</span><br><span class="line">            env_file=<span class="string">&quot;.env.test&quot;</span>, env_ignore_empty=<span class="literal">True</span>, extra=<span class="string">&quot;ignore&quot;</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">    REDIS_HOST: <span class="built_in">str</span></span><br><span class="line">    REDIS_PORT: <span class="built_in">int</span> </span><br><span class="line">    REDIS_PASSWD: <span class="built_in">str</span> </span><br><span class="line">    REDIS_DB: <span class="built_in">int</span></span><br><span class="line"></span><br><span class="line">settings = Settings()</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-添加-redis-连接池"><a href="#3-添加-redis-连接池" class="headerlink" title="3. 添加 redis 连接池"></a>3. 添加 redis 连接池</h3><p>在 <code>db.py</code> 中，创建 <code>redis</code> 连接池。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> config <span class="keyword">import</span> settings</span><br><span class="line"><span class="keyword">import</span> redis</span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> Depends</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建 Redis 连接池</span></span><br><span class="line">redis_pool = redis.ConnectionPool(</span><br><span class="line">    host=settings.REDIS_HOST,</span><br><span class="line">    port=settings.REDIS_PORT,</span><br><span class="line">    db=settings.REDIS_DB,</span><br><span class="line">    decode_responses=<span class="literal">True</span>,  <span class="comment"># 自动解码返回的字节为字符串</span></span><br><span class="line">    max_connections=<span class="number">10</span>     <span class="comment"># 最大连接数</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-创建deps"><a href="#4-创建deps" class="headerlink" title="4. 创建deps"></a>4. 创建deps</h3><p>在 <code>deps.py</code> 文件中，定义一个依赖项。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> redis</span><br><span class="line"><span class="keyword">from</span> logger <span class="keyword">import</span> logger</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_redis</span>():</span><br><span class="line">    <span class="string">&quot;&quot;&quot;获取 Redis 连接的依赖函数&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        redis_conn = redis.Redis(connection_pool=redis_pool)</span><br><span class="line">        <span class="keyword">yield</span> redis_conn</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="comment"># 可选择加入日志记录或错误上报</span></span><br><span class="line">        logger.exception(<span class="string">f&quot;Error occurred while managing redis pool session: <span class="subst">&#123;e&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">raise</span></span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        <span class="comment"># 这里不需要手动关闭连接，连接会返回到连接池中</span></span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line">RedisPoolDep = Annotated[Redis, Depends(get_redis)]</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-使用-RedisPoolDep-依赖项"><a href="#5-使用-RedisPoolDep-依赖项" class="headerlink" title="5. 使用 RedisPoolDep 依赖项"></a>5. 使用 RedisPoolDep 依赖项</h3><p>在你的主应用文件（如 <code>main.py</code>）中使用这个连接池：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, Depends</span><br><span class="line"><span class="keyword">from</span> deps <span class="keyword">import</span> RedisPoolDep</span><br><span class="line"><span class="keyword">import</span> redis</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/set/&#123;key&#125;/&#123;value&#125;&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">set_key_value</span>(<span class="params"></span></span><br><span class="line"><span class="params">    key: <span class="built_in">str</span>, </span></span><br><span class="line"><span class="params">    value: <span class="built_in">str</span>, </span></span><br><span class="line"><span class="params">    redis_conn: RedisPoolDep</span></span><br><span class="line"><span class="params"></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;设置键值对&quot;&quot;&quot;</span></span><br><span class="line">    redis_conn.<span class="built_in">set</span>(key, value)</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;message&quot;</span>: <span class="string">f&quot;Set <span class="subst">&#123;key&#125;</span> = <span class="subst">&#123;value&#125;</span>&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/get/&#123;key&#125;&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">get_key</span>(<span class="params"></span></span><br><span class="line"><span class="params">    key: <span class="built_in">str</span>, </span></span><br><span class="line"><span class="params">    redis_conn: RedisPoolDep</span></span><br><span class="line"><span class="params"></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;获取键值&quot;&quot;&quot;</span></span><br><span class="line">    value = redis_conn.get(key)</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;key&quot;</span>: key, <span class="string">&quot;value&quot;</span>: value&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/info&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">redis_info</span>(<span class="params">redis_conn: RedisPoolDep</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;获取 Redis 服务器信息&quot;&quot;&quot;</span></span><br><span class="line">    info = redis_conn.info()</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;redis_info&quot;</span>: info&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>创建 Redis 连接池并在应用启动时初始化</li>
+<li>创建依赖函数 get_redis() 来获取连接</li>
+<li>在路由处理函数中使用 Depends(get_redis) 注入 Redis 连接</li>
+<li>对于更复杂的应用，将业务逻辑封装到服务层</li>
+<li>考虑使用异步 Redis 客户端以提高性能, 例如 aioredis。这里有坑，慎用。。。</li>
+<li>使用环境变量管理配置</li>
+</ol>
+<hr>
+<p>每日踩一坑，生活更轻松。</p>
+<p>本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/about/">关于</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/probberechts">项目</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81%E5%AE%89%E8%A3%85%E5%BA%93"><span class="toc-number">1.1.</span> <span class="toc-text">1、安装库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%B7%BB%E5%8A%A0%E9%85%8D%E7%BD%AE"><span class="toc-number">1.2.</span> <span class="toc-text">2. 添加配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%B7%BB%E5%8A%A0-redis-%E8%BF%9E%E6%8E%A5%E6%B1%A0"><span class="toc-number">1.3.</span> <span class="toc-text">3. 添加 redis 连接池</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%88%9B%E5%BB%BAdeps"><span class="toc-number">1.4.</span> <span class="toc-text">4. 创建deps</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E4%BD%BF%E7%94%A8-RedisPoolDep-%E4%BE%9D%E8%B5%96%E9%A1%B9"><span class="toc-number">1.5.</span> <span class="toc-text">5. 使用 RedisPoolDep 依赖项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">2.</span> <span class="toc-text">总结</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/&text=fastapi中使用redis-pool连接池"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/&title=fastapi中使用redis-pool连接池"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/&is_video=false&description=fastapi中使用redis-pool连接池"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=fastapi中使用redis-pool连接池&body=Check out this article: http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/&title=fastapi中使用redis-pool连接池"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/&title=fastapi中使用redis-pool连接池"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/&title=fastapi中使用redis-pool连接池"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/&title=fastapi中使用redis-pool连接池"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/&name=fastapi中使用redis-pool连接池&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/&t=fastapi中使用redis-pool连接池"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2025
+    Hope
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/probberechts">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

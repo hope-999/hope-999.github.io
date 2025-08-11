@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>fastapi中使用redis-pool连接池</title>
+    <url>/2025/08/11/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/</url>
+    <content><![CDATA[导读在实际开发过程中，为了提升接口性能，我们经常会选择使用数据库连接池、redis 连接池等。
+通过连接池连接，提升效率，节省内存开销。同时通过将数据缓存到 redis 中，还可以减少网络 IO 开销。
+通常一个接口直接跟数据库交互，例如 MySQL，响应时间大概在 200ms ~ 500ms 左右。加上 redis 缓存之后，接口直接从缓存中读取，响应时间可以缩短到 10ms 左右，可以说是质的飞跃。
+下面将介绍如何在 FastAPI 中使用 redis 连接池。
+1、安装库首先确保安装了必要的 Python 包：
+pip install fastapi redis uvicorn
+
+2. 添加配置在根目录下，添加 .env.dev 文件，里面是项目相关配置。
+REDIS_HOST=&quot;192.168.201.200&quot;REDIS_PORT=&quot;6379&quot;REDIS_PASSWORD=&quot;&lt;PASSWORD&gt;&quot;REDIS_DB=&quot;9&quot;
+
+在 config.py 文件中，增加如下代码，读取配置信息。
+import osfrom typing import Annotated, Anyfrom pydantic import (    AnyUrl,    BeforeValidator,    PostgresDsn,    computed_field,)from pydantic_core import MultiHostUrlfrom pydantic_settings import BaseSettings, SettingsConfigDictclass Settings(BaseSettings):    if os.getenv(&quot;APP_ENV&quot;) == &quot;development&quot; or not os.getenv(&quot;APP_ENV&quot;):            model_config = SettingsConfigDict(                env_file=&quot;.env.dev&quot;, env_ignore_empty=True, extra=&quot;ignore&quot;            )    if os.getenv(&quot;APP_ENV&quot;) == &quot;production&quot;:        model_config = SettingsConfigDict(            env_file=&quot;/app/.env.production&quot;, env_ignore_empty=True, extra=&quot;ignore&quot;        )    if os.getenv(&quot;APP_ENV&quot;) == &quot;test&quot;:        model_config = SettingsConfigDict(            env_file=&quot;.env.test&quot;, env_ignore_empty=True, extra=&quot;ignore&quot;        )    REDIS_HOST: str    REDIS_PORT: int     REDIS_PASSWD: str     REDIS_DB: intsettings = Settings()
+
+3. 添加 redis 连接池在 db.py 中，创建 redis 连接池。
+from config import settingsimport redisfrom fastapi import Depends# 创建 Redis 连接池redis_pool = redis.ConnectionPool(    host=settings.REDIS_HOST,    port=settings.REDIS_PORT,    db=settings.REDIS_DB,    decode_responses=True,  # 自动解码返回的字节为字符串    max_connections=10     # 最大连接数)
+
+4. 创建deps在 deps.py 文件中，定义一个依赖项。
+import redisfrom logger import loggerdef get_redis():    &quot;&quot;&quot;获取 Redis 连接的依赖函数&quot;&quot;&quot;    try:        redis_conn = redis.Redis(connection_pool=redis_pool)        yield redis_conn    except Exception as e:        # 可选择加入日志记录或错误上报        logger.exception(f&quot;Error occurred while managing redis pool session: &#123;e&#125;&quot;)        raise    finally:        # 这里不需要手动关闭连接，连接会返回到连接池中        passRedisPoolDep = Annotated[Redis, Depends(get_redis)]
+
+5. 使用 RedisPoolDep 依赖项在你的主应用文件（如 main.py）中使用这个连接池：
+from fastapi import FastAPI, Dependsfrom deps import RedisPoolDepimport redisapp = FastAPI()@app.get(&quot;/set/&#123;key&#125;/&#123;value&#125;&quot;)async def set_key_value(    key: str,     value: str,     redis_conn: RedisPoolDep):    &quot;&quot;&quot;设置键值对&quot;&quot;&quot;    redis_conn.set(key, value)    return &#123;&quot;message&quot;: f&quot;Set &#123;key&#125; = &#123;value&#125;&quot;&#125;@app.get(&quot;/get/&#123;key&#125;&quot;)async def get_key(    key: str,     redis_conn: RedisPoolDep):    &quot;&quot;&quot;获取键值&quot;&quot;&quot;    value = redis_conn.get(key)    return &#123;&quot;key&quot;: key, &quot;value&quot;: value&#125;@app.get(&quot;/info&quot;)async def redis_info(redis_conn: RedisPoolDep):    &quot;&quot;&quot;获取 Redis 服务器信息&quot;&quot;&quot;    info = redis_conn.info()    return &#123;&quot;redis_info&quot;: info&#125;
+
+总结
+创建 Redis 连接池并在应用启动时初始化
+创建依赖函数 get_redis() 来获取连接
+在路由处理函数中使用 Depends(get_redis) 注入 Redis 连接
+对于更复杂的应用，将业务逻辑封装到服务层
+考虑使用异步 Redis 客户端以提高性能, 例如 aioredis。这里有坑，慎用。。。
+使用环境变量管理配置
+
+
+每日踩一坑，生活更轻松。
+本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。
+]]></content>
+  </entry>
+</search>
