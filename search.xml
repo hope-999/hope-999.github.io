@@ -1,6 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>fastapi中如何写webhook接口</title>
+    <url>/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/</url>
+    <content><![CDATA[导读在构建 CICD 的过程中，经常会用到一些工具，比如：Jenkins、GitLab、Coding 等。
+这些构建工具都有一个共同点：它们能支持 webHook 的触发。
+比如 gitlib 中设置当前 push 代码的时候触发 webhook。
+当我们配置了 webhook 以后，会在触发事件发生的时候，去请求一个自定义的 url。
+这样就丰富了我们在构建 CICD 的流程中，去处理更多的业务逻辑。
+webhook 如何自定义接口@router.post(&quot;/webhook/1.0.0&quot;, name=&quot;webhook&quot;)async def add_new(    request: Request,) -&gt; Any:    # 解析 Webhook 请求体的 JSON 数据    body = await request.body()    # 解析 JSON 数据    try:        data = json.loads(body.decode(&quot;utf-8&quot;))    except json.JSONDecodeError:        return Response(&quot;ok&quot;)    logger.info(f&quot;webhook的body=&#123;data&#125;&quot;)    # 这里添加业务逻辑    # ...    return Response(&quot;ok&quot;)
+
+说明
+请求方法定义为 post，一般要使用post方法。
+设置请求类型为 application&#x2F;json
+读取请求数据，并解析。body = await request.body()
+读取 json 数据,data = json.loads(body.decode(&quot;utf-8&quot;))，这里要注意异常的捕获，防止报错。
+在处理逻辑中，一般需要进行数据校验，避免接口报错。
+在需要使用日志信息时，要添加 logger。
+解析 body 中的参数。
+添加业务处理逻辑。
+返回 ok, 返回 ok 告诉 webhook 通知发送端，接口正常处理完成。这里要记住一定要返回 ok，否则会不停的触发事件。return Response(&quot;ok&quot;)
+
+如何测试？使用 curl 的 post 方式，带上 body 数据，示例：
+curl --location --request POST &#x27;http://127.0.0.1:9000/webhook/1.0.0&#x27; \--header &#x27;Content-Type: application/json&#x27; \--data-raw &#x27;&#123;&quot;object_kind&quot;: &quot;deployment&quot;, &quot;id&quot;: 123&#125;&#x27;
+
+
+每日踩一坑，生活更轻松。
+本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。
+]]></content>
+  </entry>
+  <entry>
     <title>fastapi中使用redis-pool连接池</title>
     <url>/2025/08/10/fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/</url>
     <content><![CDATA[导读在实际开发过程中，为了提升接口性能，我们经常会选择使用数据库连接池、redis 连接池等。
@@ -139,35 +168,6 @@ db.rollback() 在异常时回滚
 对于纯粹的大批量数据更新，批量语句方式性能更好。
 
 总之：在一个逻辑函数中处理事务，避免中间状态，确保原子性和一致性，尽量不要写一段逻辑提交一次，而是在逻辑函数结束时候提交或回滚一次。如果遇到高并发场景，还需要考虑锁策略。
-
-每日踩一坑，生活更轻松。
-本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。
-]]></content>
-  </entry>
-  <entry>
-    <title>fastapi中如何写webhook接口</title>
-    <url>/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/</url>
-    <content><![CDATA[导读在构建 CICD 的过程中，经常会用到一些工具，比如：Jenkins、GitLab、Coding 等。
-这些构建工具都有一个共同点：它们能支持 webHook 的触发。
-比如 gitlib 中设置当前 push 代码的时候触发 webhook。
-当我们配置了 webhook 以后，会在触发事件发生的时候，去请求一个自定义的 url。
-这样就丰富了我们在构建 CICD 的流程中，去处理更多的业务逻辑。
-webhook 如何自定义接口@router.post(&quot;/webhook/1.0.0&quot;, name=&quot;webhook&quot;)async def add_new(    request: Request,) -&gt; Any:    # 解析 Webhook 请求体的 JSON 数据    body = await request.body()    # 解析 JSON 数据    try:        data = json.loads(body.decode(&quot;utf-8&quot;))    except json.JSONDecodeError:        return Response(&quot;ok&quot;)    logger.info(f&quot;webhook的body=&#123;data&#125;&quot;)    # 这里添加业务逻辑    # ...    return Response(&quot;ok&quot;)
-
-说明
-请求方法定义为 post，一般要使用post方法。
-设置请求类型为 application&#x2F;json
-读取请求数据，并解析。body = await request.body()
-读取 json 数据,data = json.loads(body.decode(&quot;utf-8&quot;))，这里要注意异常的捕获，防止报错。
-在处理逻辑中，一般需要进行数据校验，避免接口报错。
-在需要使用日志信息时，要添加 logger。
-解析 body 中的参数。
-添加业务处理逻辑。
-返回 ok, 返回 ok 告诉 webhook 通知发送端，接口正常处理完成。这里要记住一定要返回 ok，否则会不停的触发事件。return Response(&quot;ok&quot;)
-
-如何测试？使用 curl 的 post 方式，带上 body 数据，示例：
-curl --location --request POST &#x27;http://127.0.0.1:9000/webhook/1.0.0&#x27; \--header &#x27;Content-Type: application/json&#x27; \--data-raw &#x27;&#123;&quot;object_kind&quot;: &quot;deployment&quot;, &quot;id&quot;: 123&#125;&#x27;
-
 
 每日踩一坑，生活更轻松。
 本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。

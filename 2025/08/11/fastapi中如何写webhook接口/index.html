@@ -9,7 +9,7 @@
     <meta name="description" content="导读在构建 CICD 的过程中，经常会用到一些工具，比如：Jenkins、GitLab、Coding 等。 这些构建工具都有一个共同点：它们能支持 webHook 的触发。 比如 gitlib 中设置当前 push 代码的时候触发 webhook。 当我们配置了 webhook 以后，会在触发事件发生的时候，去请求一个自定义的 url。 这样就丰富了我们在构建 CICD 的流程中，去处理更多的业务">
 <meta property="og:type" content="article">
 <meta property="og:title" content="fastapi中如何写webhook接口">
-<meta property="og:url" content="http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/index.html">
+<meta property="og:url" content="https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/index.html">
 <meta property="og:site_name" content="Hope 的博客">
 <meta property="og:description" content="导读在构建 CICD 的过程中，经常会用到一些工具，比如：Jenkins、GitLab、Coding 等。 这些构建工具都有一个共同点：它们能支持 webHook 的触发。 比如 gitlib 中设置当前 push 代码的时候触发 webhook。 当我们配置了 webhook 以后，会在触发事件发生的时候，去请求一个自定义的 url。 这样就丰富了我们在构建 CICD 的流程中，去处理更多的业务">
 <meta property="og:locale" content="zh_CN">
@@ -73,7 +73,7 @@
      --><!--
        --><li><a href="/archives/">归档</a></li><!--
      --><!--
-       --><li><a target="_blank" rel="noopener" href="http://github.com/probberechts">项目</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/hope-999">项目</a></li><!--
      -->
       </ul>
     </span>
@@ -95,17 +95,17 @@
     <br/>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&text=fastapi中如何写webhook接口"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&is_video=false&description=fastapi中如何写webhook接口"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=fastapi中如何写webhook接口&body=Check out this article: http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&name=fastapi中如何写webhook接口&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&t=fastapi中如何写webhook接口"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&text=fastapi中如何写webhook接口"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&is_video=false&description=fastapi中如何写webhook接口"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=fastapi中如何写webhook接口&body=Check out this article: https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&name=fastapi中如何写webhook接口&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&t=fastapi中如何写webhook接口"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -195,7 +195,7 @@
         
           <li><a href="/archives/">归档</a></li>
         
-          <li><a target="_blank" rel="noopener" href="http://github.com/probberechts">项目</a></li>
+          <li><a target="_blank" rel="noopener" href="https://github.com/hope-999">项目</a></li>
         
       </ul>
     </div>
@@ -209,17 +209,17 @@
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&text=fastapi中如何写webhook接口"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&is_video=false&description=fastapi中如何写webhook接口"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=fastapi中如何写webhook接口&body=Check out this article: http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&name=fastapi中如何写webhook接口&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&t=fastapi中如何写webhook接口"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&text=fastapi中如何写webhook接口"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&is_video=false&description=fastapi中如何写webhook接口"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=fastapi中如何写webhook接口&body=Check out this article: https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&title=fastapi中如何写webhook接口"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&name=fastapi中如何写webhook接口&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/08/11/fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/&t=fastapi中如何写webhook接口"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -255,7 +255,7 @@
      --><!--
        --><li><a href="/archives/">归档</a></li><!--
      --><!--
-       --><li><a target="_blank" rel="noopener" href="http://github.com/probberechts">项目</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/hope-999">项目</a></li><!--
      -->
       </ul>
     </nav>
