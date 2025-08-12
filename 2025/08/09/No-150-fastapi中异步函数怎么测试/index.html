@@ -8,14 +8,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
     <meta name="description" content="导读在 fastapi 中，经常会有异步函数，那么在测试的时候，怎么测试异步函数呢？ 需要使用专门的工具和方法。pytest 通过 pytest-asyncio 插件提供了对异步测试的支持。 安装必要的包首先需要安装 pytest 和 pytest-asyncio： 1pip install pytest pytest-asyncio  基本异步测试1. 简单异步测试123456789import">
 <meta property="og:type" content="article">
-<meta property="og:title" content="No-150-fastapi中异步函数怎么测试">
+<meta property="og:title" content="No.150-fastapi中异步函数怎么测试">
 <meta property="og:url" content="https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/index.html">
 <meta property="og:site_name" content="Hope 的博客">
 <meta property="og:description" content="导读在 fastapi 中，经常会有异步函数，那么在测试的时候，怎么测试异步函数呢？ 需要使用专门的工具和方法。pytest 通过 pytest-asyncio 插件提供了对异步测试的支持。 安装必要的包首先需要安装 pytest 和 pytest-asyncio： 1pip install pytest pytest-asyncio  基本异步测试1. 简单异步测试123456789import">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-08-09T02:09:35.000Z">
-<meta property="article:modified_time" content="2025-08-12T02:14:36.539Z">
+<meta property="article:modified_time" content="2025-08-12T08:44:50.941Z">
 <meta property="article:author" content="Hope">
+<meta property="article:tag" content="fastapi">
 <meta name="twitter:card" content="summary">
     
     
@@ -36,7 +37,7 @@
       
     
     <!-- title -->
-    <title>No-150-fastapi中异步函数怎么测试</title>
+    <title>No.150-fastapi中异步函数怎么测试</title>
     <!-- async scripts -->
     <!-- Google Analytics -->
 
@@ -98,16 +99,16 @@
     <div id="share" style="display: none">
       <ul>
   <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&text=No-150-fastapi中异步函数怎么测试"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No-150-fastapi中异步函数怎么测试"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&is_video=false&description=No-150-fastapi中异步函数怎么测试"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=No-150-fastapi中异步函数怎么测试&body=Check out this article: https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No-150-fastapi中异步函数怎么测试"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No-150-fastapi中异步函数怎么测试"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No-150-fastapi中异步函数怎么测试"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No-150-fastapi中异步函数怎么测试"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&name=No-150-fastapi中异步函数怎么测试&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&t=No-150-fastapi中异步函数怎么测试"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&text=No.150-fastapi中异步函数怎么测试"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No.150-fastapi中异步函数怎么测试"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&is_video=false&description=No.150-fastapi中异步函数怎么测试"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.150-fastapi中异步函数怎么测试&body=Check out this article: https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No.150-fastapi中异步函数怎么测试"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No.150-fastapi中异步函数怎么测试"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No.150-fastapi中异步函数怎么测试"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No.150-fastapi中异步函数怎么测试"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&name=No.150-fastapi中异步函数怎么测试&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&t=No.150-fastapi中异步函数怎么测试"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -127,7 +128,7 @@
   <header>
     
     <h1 class="posttitle p-name" itemprop="name headline">
-        No-150-fastapi中异步函数怎么测试
+        No.150-fastapi中异步函数怎么测试
     </h1>
 
 
@@ -148,6 +149,11 @@
       
 
       
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/fastapi/" rel="tag">fastapi</a>
+    </div>
+
 
     </div>
   </header>
@@ -224,16 +230,16 @@
     <div id="share-footer" style="display: none">
       <ul>
   <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&text=No-150-fastapi中异步函数怎么测试"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No-150-fastapi中异步函数怎么测试"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&is_video=false&description=No-150-fastapi中异步函数怎么测试"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=No-150-fastapi中异步函数怎么测试&body=Check out this article: https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No-150-fastapi中异步函数怎么测试"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No-150-fastapi中异步函数怎么测试"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No-150-fastapi中异步函数怎么测试"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No-150-fastapi中异步函数怎么测试"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&name=No-150-fastapi中异步函数怎么测试&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&t=No-150-fastapi中异步函数怎么测试"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&text=No.150-fastapi中异步函数怎么测试"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No.150-fastapi中异步函数怎么测试"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&is_video=false&description=No.150-fastapi中异步函数怎么测试"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.150-fastapi中异步函数怎么测试&body=Check out this article: https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No.150-fastapi中异步函数怎么测试"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No.150-fastapi中异步函数怎么测试"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No.150-fastapi中异步函数怎么测试"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&title=No.150-fastapi中异步函数怎么测试"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&name=No.150-fastapi中异步函数怎么测试&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/&t=No.150-fastapi中异步函数怎么测试"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>

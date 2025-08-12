@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="导读在 fastapi 中，自动化生成文档是一个非常简单的事情。 但是也需要遵循一些非常必要的规则来帮助我们更好的生成便于阅读的文档。 这篇文章将介绍从入参的定义、到返回结构体的定义，异常捕获几个方面来规范接口开发文档。 使用的参数校验库为：pydantic。 入参的定义必填参数123456from typing import Optional, List, Literal, Unionfrom">
+<meta property="og:type" content="article">
+<meta property="og:title" content="No.148-fastapi中使用标准化出入参自动化生成接口文档">
+<meta property="og:url" content="https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/index.html">
+<meta property="og:site_name" content="Hope 的博客">
+<meta property="og:description" content="导读在 fastapi 中，自动化生成文档是一个非常简单的事情。 但是也需要遵循一些非常必要的规则来帮助我们更好的生成便于阅读的文档。 这篇文章将介绍从入参的定义、到返回结构体的定义，异常捕获几个方面来规范接口开发文档。 使用的参数校验库为：pydantic。 入参的定义必填参数123456from typing import Optional, List, Literal, Unionfrom">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-08-07T02:23:15.000Z">
+<meta property="article:modified_time" content="2025-08-12T08:45:08.233Z">
+<meta property="article:author" content="Hope">
+<meta property="article:tag" content="fastapi">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>No.148-fastapi中使用标准化出入参自动化生成接口文档</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/hope-999">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2025/08/08/No-149-fastapi%E4%B8%AD%E6%A8%A1%E5%9E%8B%E8%BD%ACjson%E5%AD%97%E7%AC%A6%E4%B8%B2%E7%9A%84%E5%9D%91/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/&text=No.148-fastapi中使用标准化出入参自动化生成接口文档"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/&title=No.148-fastapi中使用标准化出入参自动化生成接口文档"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/&is_video=false&description=No.148-fastapi中使用标准化出入参自动化生成接口文档"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.148-fastapi中使用标准化出入参自动化生成接口文档&body=Check out this article: https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/&title=No.148-fastapi中使用标准化出入参自动化生成接口文档"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/&title=No.148-fastapi中使用标准化出入参自动化生成接口文档"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/&title=No.148-fastapi中使用标准化出入参自动化生成接口文档"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/&title=No.148-fastapi中使用标准化出入参自动化生成接口文档"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/&name=No.148-fastapi中使用标准化出入参自动化生成接口文档&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/&t=No.148-fastapi中使用标准化出入参自动化生成接口文档"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%A5%E5%8F%82%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="toc-number">1.1.</span> <span class="toc-text">入参的定义</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BF%85%E5%A1%AB%E5%8F%82%E6%95%B0"><span class="toc-number">1.1.1.</span> <span class="toc-text">必填参数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9D%9E%E5%BF%85%E5%A1%AB%E5%8F%82%E6%95%B0"><span class="toc-number">1.1.2.</span> <span class="toc-text">非必填参数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8F%82%E6%95%B0%E9%95%BF%E5%BA%A6%E5%AE%9A%E4%B9%89"><span class="toc-number">1.1.3.</span> <span class="toc-text">字符串参数长度定义</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%82%E6%95%B0%E5%8F%AF%E9%80%89%E5%80%BC"><span class="toc-number">1.1.4.</span> <span class="toc-text">参数可选值</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B5%8C%E5%A5%97%E5%8F%82%E6%95%B0"><span class="toc-number">1.1.5.</span> <span class="toc-text">嵌套参数</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%94%E5%9B%9E%E7%BB%93%E6%9E%84%E4%BD%93%E5%AE%9A%E4%B9%89"><span class="toc-number">1.2.</span> <span class="toc-text">返回结构体定义</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E7%BB%93%E6%9E%84%E4%BD%93%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="toc-number">1.2.1.</span> <span class="toc-text">基础结构体的定义</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E8%A6%81%E8%BF%94%E5%9B%9E%E7%9A%84%E6%95%B0%E6%8D%AE%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.2.2.</span> <span class="toc-text">定义要返回的数据模型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B7%AF%E7%94%B1%E5%87%BD%E6%95%B0%E4%B8%AD%E4%BD%BF%E7%94%A8"><span class="toc-number">1.2.3.</span> <span class="toc-text">路由函数中使用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%94%E5%9B%9E%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.2.4.</span> <span class="toc-text">返回数据格式示例</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B9%9F%E5%8F%AF%E4%BB%A5%E4%B8%8D%E7%94%A8%E5%AE%9A%E4%B9%89PeopleDataModelResponse"><span class="toc-number">1.2.5.</span> <span class="toc-text">也可以不用定义PeopleDataModelResponse</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A6%82%E6%9E%9C%E8%BF%94%E5%9B%9E%E7%9A%84%E6%95%B0%E6%8D%AEdata%E6%98%AF%E5%88%97%E8%A1%A8"><span class="toc-number">1.2.6.</span> <span class="toc-text">如果返回的数据data是列表</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%94%E5%9B%9E%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F%E7%A4%BA%E4%BE%8B-1"><span class="toc-number">1.2.7.</span> <span class="toc-text">返回数据格式示例</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%82%E5%B8%B8%E6%8D%95%E8%8E%B7"><span class="toc-number">1.3.</span> <span class="toc-text">异常捕获</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E5%BC%82%E5%B8%B8%E7%B1%BB"><span class="toc-number">1.3.1.</span> <span class="toc-text">定义异常类</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#fastapi%E6%8D%95%E8%8E%B7%E5%BC%82%E5%B8%B8"><span class="toc-number">1.3.2.</span> <span class="toc-text">fastapi捕获异常</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BB%E5%8A%A8%E6%8A%9B%E5%BC%82%E5%B8%B8"><span class="toc-number">1.3.3.</span> <span class="toc-text">主动抛异常</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8E%A5%E5%8F%A3%E8%BF%94%E5%9B%9E%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="toc-number">1.3.4.</span> <span class="toc-text">接口返回数据结构</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E6%96%87%E6%A1%A3"><span class="toc-number">1.4.</span> <span class="toc-text">生成文档</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.5.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        No.148-fastapi中使用标准化出入参自动化生成接口文档
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Hope</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-08-07T02:23:15.000Z" class="dt-published" itemprop="datePublished">2025-08-07</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/fastapi/" rel="tag">fastapi</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="导读"><a href="#导读" class="headerlink" title="导读"></a>导读</h2><p>在 <code>fastapi</code> 中，自动化生成文档是一个非常简单的事情。</p>
+<p>但是也需要遵循一些非常必要的规则来帮助我们更好的生成便于阅读的文档。</p>
+<p>这篇文章将介绍从入参的定义、到返回结构体的定义，异常捕获几个方面来规范接口开发文档。</p>
+<p>使用的参数校验库为：<code>pydantic</code>。</p>
+<h3 id="入参的定义"><a href="#入参的定义" class="headerlink" title="入参的定义"></a>入参的定义</h3><h4 id="必填参数"><a href="#必填参数" class="headerlink" title="必填参数"></a>必填参数</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> <span class="type">Optional</span>, <span class="type">List</span>, <span class="type">Literal</span>, <span class="type">Union</span></span><br><span class="line"><span class="keyword">from</span> pydantic <span class="keyword">import</span> BaseModel, Field</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">RemoveModuleRequest</span>(<span class="title class_ inherited__">BaseModel</span>):</span><br><span class="line">    service_id: <span class="built_in">int</span> = Field(..., description=<span class="string">&quot;服务 id&quot;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>说明：</p>
+<ul>
+<li>定义 <code>class</code> 类</li>
+<li>继承 <code>BaseModel</code></li>
+<li>使用 <code>Field</code> 定义参数类型等。</li>
+<li>这里定义了<code>service_id</code>字段为<code>int</code>类型</li>
+<li><code>Field</code> 第一个参数的默认值为 <code>...</code>，就表示是必填参数</li>
+</ul>
+<h4 id="非必填参数"><a href="#非必填参数" class="headerlink" title="非必填参数"></a>非必填参数</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> <span class="type">Optional</span>, <span class="type">List</span>, <span class="type">Literal</span>, <span class="type">Union</span></span><br><span class="line"><span class="keyword">from</span> pydantic <span class="keyword">import</span> BaseModel, Field</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ModuleCaseManagerCaseListRequest</span>(<span class="title class_ inherited__">BaseModel</span>):</span><br><span class="line">    order_id: <span class="type">Optional</span>[<span class="built_in">int</span>] = Field(default=<span class="literal">None</span>, description=<span class="string">&quot;工单id&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>说明：</p>
+<ul>
+<li>这里定义了<code>order_id</code>字段为<code>int</code>类型</li>
+<li>使用 <code>Optional</code> 包裹住 <code>int</code> 表示非必填</li>
+<li>结合<code>Field</code> 第一个参数的默认值为 <code>default=None</code>，就表示是非必填参数</li>
+</ul>
+<p>注意：这里的 <code>default=None</code> 不能简写成 <code>None</code>，简写之后文档将识别不了，不知道这个问题 <code>fastapi</code> 官方修复了没。</p>
+<h4 id="字符串参数长度定义"><a href="#字符串参数长度定义" class="headerlink" title="字符串参数长度定义"></a>字符串参数长度定义</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> <span class="type">Optional</span>, <span class="type">List</span>, <span class="type">Literal</span>, <span class="type">Union</span></span><br><span class="line"><span class="keyword">from</span> pydantic <span class="keyword">import</span> BaseModel, Field</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ModuleCaseManagerCaseListRequest</span>(<span class="title class_ inherited__">BaseModel</span>):</span><br><span class="line">    env_id: <span class="type">Optional</span>[<span class="built_in">str</span>] = Field(default=<span class="literal">None</span>, max_length=<span class="number">8</span>, min_length=<span class="number">4</span>, description=<span class="string">&quot;工单id&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>说明：</p>
+<ul>
+<li>这里定义了<code>env_id</code>字段为<code>str</code>类型</li>
+<li>使用 <code>Optional</code> 包裹住 <code>str</code> 表示非必填</li>
+<li>结合<code>Field</code> 第一个参数的默认值为 <code>default=None</code>，就表示是非必填参数</li>
+<li><code>max_length</code> 定义字段最长为 8 个字符</li>
+<li><code>min_length</code> 定义字段最短为 4 个字符</li>
+</ul>
+<h4 id="参数可选值"><a href="#参数可选值" class="headerlink" title="参数可选值"></a>参数可选值</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">RequestEnv</span>(<span class="title class_ inherited__">BaseModel</span>):</span><br><span class="line">    env: <span class="type">Literal</span>[<span class="string">&quot;dev&quot;</span>, <span class="string">&quot;test&quot;</span>, <span class="string">&quot;pro&quot;</span>] = Field(</span><br><span class="line">        ..., description=<span class="string">&quot;环境: dev-开发, test-测试, pro-现网&quot;</span></span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
+
+<p>说明：</p>
+<ul>
+<li><code>Literal[&quot;dev&quot;, &quot;test&quot;, &quot;pro&quot;]</code> 定义可选值</li>
+</ul>
+<h4 id="嵌套参数"><a href="#嵌套参数" class="headerlink" title="嵌套参数"></a>嵌套参数</h4><p>以上处理的都是层级比较单一的入参例如格式这样的:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"> &#123;</span><br><span class="line">    <span class="string">&quot;service&quot;</span>: <span class="string">&quot;&quot;</span>,</span><br><span class="line">    <span class="string">&quot;plan_id&quot;</span>: <span class="string">&quot;0&quot;</span>,</span><br><span class="line">    <span class="string">&quot;order_id&quot;</span>: <span class="string">&quot;0&quot;</span>,</span><br><span class="line">    <span class="string">&quot;env_id&quot;</span>: <span class="string">&quot;&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果要处理多个层级的入参，例如这样的参数怎么处理:</p>
+ <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"> &#123;</span><br><span class="line">    <span class="string">&quot;services&quot;</span>: [&#123;</span><br><span class="line">        <span class="string">&quot;service_type&quot;</span>: <span class="string">&quot;&quot;</span>,</span><br><span class="line">        <span class="string">&quot;service_info_id&quot;</span>: <span class="number">0</span>,</span><br><span class="line">        <span class="string">&quot;branch_id&quot;</span>: <span class="number">0</span>,</span><br><span class="line">        <span class="string">&quot;api_ids&quot;</span>: [<span class="number">101</span>, <span class="number">201</span>, <span class="number">345</span>]</span><br><span class="line">    &#125;],</span><br><span class="line">    <span class="string">&quot;plan_id&quot;</span>: <span class="string">&quot;0&quot;</span>,</span><br><span class="line">    <span class="string">&quot;order_id&quot;</span>: <span class="string">&quot;0&quot;</span>,</span><br><span class="line">    <span class="string">&quot;env_id&quot;</span>: <span class="string">&quot;&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> 只需要再定义一个模型，进行嵌套即可：</p>
+ <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ApiCaseManagerRunCaseServiceData</span>(<span class="title class_ inherited__">BaseModel</span>):</span><br><span class="line">    service_type: <span class="built_in">str</span> = Field(..., description=<span class="string">&quot;服务类型&quot;</span>)</span><br><span class="line">    service_info_id: <span class="built_in">int</span> = Field(..., description=<span class="string">&quot;服务id&quot;</span>)</span><br><span class="line">    branch_id: <span class="built_in">int</span> = Field(..., description=<span class="string">&quot;分支id&quot;</span>)</span><br><span class="line">    api_ids: <span class="built_in">list</span> = Field(..., description=<span class="string">&quot;接口id列表&quot;</span>, example=[<span class="number">101</span>, <span class="number">201</span>, <span class="number">345</span>])</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ApiCaseManagerRunCaseRequest</span>(<span class="title class_ inherited__">BaseModel</span>):</span><br><span class="line">    services: <span class="type">List</span>[ApiCaseManagerRunCaseServiceData] = Field(..., description=<span class="string">&quot;服务列表&quot;</span>) <span class="comment"># 这里嵌套模型</span></span><br><span class="line">    plan_id: <span class="type">Optional</span>[<span class="built_in">int</span>] = Field(default=<span class="number">0</span>, description=<span class="string">&quot;计划 ID，关联业务计划的标识&quot;</span>)</span><br><span class="line">    order_id: <span class="type">Optional</span>[<span class="built_in">int</span>] = Field(default=<span class="number">0</span>, description=<span class="string">&quot;工单id&quot;</span>)</span><br><span class="line">    env_id: <span class="built_in">str</span> = Field(..., description=<span class="string">&quot;环境id&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="返回结构体定义"><a href="#返回结构体定义" class="headerlink" title="返回结构体定义"></a>返回结构体定义</h3><h4 id="基础结构体的定义"><a href="#基础结构体的定义" class="headerlink" title="基础结构体的定义"></a>基础结构体的定义</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">T = TypeVar(<span class="string">&quot;T&quot;</span>)  <span class="comment"># 泛型类型变量，用于data字段</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">BaseResponse</span>(BaseModel, <span class="type">Generic</span>[T]):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    基础响应模型，所有API响应都应继承此模型</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    code: <span class="built_in">int</span> = Field(default=<span class="number">0</span>, description=<span class="string">&quot;状态码，0表示成功，非0表示错误&quot;</span>, example=<span class="number">0</span>)</span><br><span class="line">    rec_ts: <span class="built_in">float</span> = Field(</span><br><span class="line">        ...,</span><br><span class="line">        description=<span class="string">&quot;请求接收时间戳（Unix时间戳，精确到毫秒）&quot;</span>,</span><br><span class="line">        example=<span class="number">1611399999.999999</span>,</span><br><span class="line">    )</span><br><span class="line">    rsp_ts: <span class="built_in">float</span> = Field(</span><br><span class="line">        ...,</span><br><span class="line">        description=<span class="string">&quot;响应生成时间戳（Unix时间戳，精确到毫秒）&quot;</span>,</span><br><span class="line">        example=<span class="number">1611399999.999999</span>,</span><br><span class="line">    )</span><br><span class="line">    msg: <span class="built_in">str</span> = Field(</span><br><span class="line">        default=<span class="string">&quot;success&quot;</span>,</span><br><span class="line">        description=<span class="string">&quot;状态消息，成功时为&#x27;success&#x27;，错误时为错误描述&quot;</span>,</span><br><span class="line">        example=<span class="string">&quot;success&quot;</span>,</span><br><span class="line">    )</span><br><span class="line">    data: <span class="type">Optional</span>[T] = Field(default=<span class="literal">None</span>, description=<span class="string">&quot;实际返回的数据内容，错误时为null&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">    @classmethod</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">success</span>(<span class="params">cls, data: T = <span class="literal">None</span>, msg: <span class="built_in">str</span> = <span class="string">&quot;success&quot;</span></span>):</span><br><span class="line">        <span class="string">&quot;&quot;&quot;成功的快捷方法&quot;&quot;&quot;</span></span><br><span class="line">        now = datetime.now().timestamp()</span><br><span class="line">        <span class="keyword">return</span> cls(code=<span class="number">0</span>, rec_ts=now, rsp_ts=now, msg=msg, data=data)</span><br></pre></td></tr></table></figure>
+
+<h4 id="定义要返回的数据模型"><a href="#定义要返回的数据模型" class="headerlink" title="定义要返回的数据模型"></a>定义要返回的数据模型</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">PeopleDataModel</span>(<span class="title class_ inherited__">BaseModel</span>):</span><br><span class="line">    numbers: <span class="type">List</span>[<span class="built_in">int</span>]</span><br><span class="line">    people: <span class="type">List</span>[<span class="built_in">str</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">PeopleDataModelResponse</span>(BaseResponse[PeopleDataModel]):</span><br><span class="line">    <span class="keyword">pass</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="路由函数中使用"><a href="#路由函数中使用" class="headerlink" title="路由函数中使用"></a>路由函数中使用</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@router.post(<span class="params"><span class="string">&quot;/case_list/1.0.0&quot;</span>, response_model=PeopleDataModelResponse, name=<span class="string">&quot;用例列表&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">case_list</span>(<span class="params"></span></span><br><span class="line"><span class="params">    db_session: DbSessionDep</span></span><br><span class="line"><span class="params">    request: ApiCaseManagerCaseListRequest</span></span><br><span class="line"><span class="params"></span>) -&gt; <span class="type">Any</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;用例列表</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        db_session: 数据库连接</span></span><br><span class="line"><span class="string">        request: 请求参数</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        Any</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 获取查询结果（列表）</span></span><br><span class="line">    data = case_list_crud(request, db_session)</span><br><span class="line">    <span class="keyword">return</span> PeopleDataModelResponse.success(data=data)</span><br></pre></td></tr></table></figure>
+
+<h4 id="返回数据格式示例"><a href="#返回数据格式示例" class="headerlink" title="返回数据格式示例"></a>返回数据格式示例</h4><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;code&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;rec_ts&quot;</span><span class="punctuation">:</span> <span class="number">1611399999.999999</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;rsp_ts&quot;</span><span class="punctuation">:</span> <span class="number">1611399999.999999</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;msg&quot;</span><span class="punctuation">:</span> <span class="string">&quot;success&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;data&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;numbers&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;people&quot;</span><span class="punctuation">:</span> <span class="string">&quot; 小明&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="也可以不用定义PeopleDataModelResponse"><a href="#也可以不用定义PeopleDataModelResponse" class="headerlink" title="也可以不用定义PeopleDataModelResponse"></a>也可以不用定义PeopleDataModelResponse</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@router.post(<span class="params"><span class="string">&quot;/case_list/1.0.0&quot;</span>, response_model=BaseResponse[PeopleDataModel], name=<span class="string">&quot;用例列表&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">case_list</span>(<span class="params"></span></span><br><span class="line"><span class="params">    db_session: DbSessionDep</span></span><br><span class="line"><span class="params">    request: ApiCaseManagerCaseListRequest</span></span><br><span class="line"><span class="params"></span>) -&gt; <span class="type">Any</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;用例列表</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        db_session: 数据库连接</span></span><br><span class="line"><span class="string">        request: 请求参数</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        Any</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 获取查询结果（列表）</span></span><br><span class="line">    data = case_list_crud(request, db_session)</span><br><span class="line">    <span class="keyword">return</span> BaseResponse[PeopleDataModel].success(data=data)</span><br></pre></td></tr></table></figure>
+
+<h4 id="如果返回的数据data是列表"><a href="#如果返回的数据data是列表" class="headerlink" title="如果返回的数据data是列表"></a>如果返回的数据data是列表</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> <span class="type">List</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@router.post(<span class="params"><span class="string">&quot;/case_list/1.0.0&quot;</span>, response_model=BaseResponse[<span class="type">List</span>[PeopleDataModel]], name=<span class="string">&quot;用例列表&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">case_list</span>(<span class="params"></span></span><br><span class="line"><span class="params">    db_session: DbSessionDep</span></span><br><span class="line"><span class="params">    request: ApiCaseManagerCaseListRequest</span></span><br><span class="line"><span class="params"></span>) -&gt; <span class="type">Any</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;用例列表</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        db_session: 数据库连接</span></span><br><span class="line"><span class="string">        request: 请求参数</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        Any</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 获取查询结果（列表）</span></span><br><span class="line">    data = case_list_crud(request, db_session) <span class="comment"># 返回的列表中数据的类型是 PeopleDataModel</span></span><br><span class="line">    <span class="keyword">return</span> BaseResponse[<span class="type">List</span>[PeopleDataModel]].success(data=data)</span><br></pre></td></tr></table></figure>
+
+<h4 id="返回数据格式示例-1"><a href="#返回数据格式示例-1" class="headerlink" title="返回数据格式示例"></a>返回数据格式示例</h4><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;code&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;rec_ts&quot;</span><span class="punctuation">:</span> <span class="number">1611399999.999999</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;rsp_ts&quot;</span><span class="punctuation">:</span> <span class="number">1611399999.999999</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;msg&quot;</span><span class="punctuation">:</span> <span class="string">&quot;success&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;data&quot;</span><span class="punctuation">:</span><span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;numbers&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;people&quot;</span><span class="punctuation">:</span> <span class="string">&quot; 小明&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;numbers&quot;</span><span class="punctuation">:</span> <span class="number">2</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;people&quot;</span><span class="punctuation">:</span> <span class="string">&quot; 小蘑菇&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>返回体结构灵感来源：<code>https://docs.pydantic.dev/2.8/concepts/models/#generic-models</code> 中的 <code>Generic models</code> 章节。</p>
+<h3 id="异常捕获"><a href="#异常捕获" class="headerlink" title="异常捕获"></a>异常捕获</h3><h4 id="定义异常类"><a href="#定义异常类" class="headerlink" title="定义异常类"></a>定义异常类</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ResponseErrorV2</span>(<span class="title class_ inherited__">Exception</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, status_code: <span class="built_in">int</span>, code: <span class="built_in">int</span>, msg: <span class="built_in">str</span></span>):</span><br><span class="line">        <span class="variable language_">self</span>.status_code = status_code</span><br><span class="line">        <span class="variable language_">self</span>.code = code</span><br><span class="line">        <span class="variable language_">self</span>.msg = msg</span><br></pre></td></tr></table></figure>
+
+<h4 id="fastapi捕获异常"><a href="#fastapi捕获异常" class="headerlink" title="fastapi捕获异常"></a>fastapi捕获异常</h4><p><code>main.py</code> 入口函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.exception_handler(<span class="params">ResponseErrorV2</span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">custom_error_handler</span>(<span class="params">request: Request, exc: ResponseErrorV2</span>):</span><br><span class="line">    <span class="keyword">return</span> JSONResponse(</span><br><span class="line">        status_code=exc.status_code,</span><br><span class="line">        content=&#123;<span class="string">&quot;code&quot;</span>: exc.code, <span class="string">&quot;msg&quot;</span>: exc.msg&#125;,</span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
+
+<h4 id="主动抛异常"><a href="#主动抛异常" class="headerlink" title="主动抛异常"></a>主动抛异常</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">raise</span> ResponseErrorV2(status_code=<span class="number">400</span>, code=<span class="number">400001</span>, msg=<span class="string">&quot;请求头必须携带Token&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h4 id="接口返回数据结构"><a href="#接口返回数据结构" class="headerlink" title="接口返回数据结构"></a>接口返回数据结构</h4><p>status: 400</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;code&quot;</span><span class="punctuation">:</span> <span class="number">400001</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;msg&quot;</span><span class="punctuation">:</span> <span class="string">&quot;请求头必须携带Token&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="生成文档"><a href="#生成文档" class="headerlink" title="生成文档"></a>生成文档</h3><p>启动<code>fastapi</code>服务，编写<code>shell</code>脚本：<code>generate_swagger.sh</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#! /bin/bash</span></span><br><span class="line"></span><br><span class="line">curl -X GET http://127.0.0.1:9000/openapi.json &gt; docs/api/swagger.json</span><br></pre></td></tr></table></figure>
+
+<p>分别执行如下命令：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">chmod</span> +x generate_swagger.sh</span><br><span class="line"></span><br><span class="line">./generate_swagger.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p><code>pydantic</code> 不仅可以在编写代码的过程中规范书写格式，还能自动化生成文档，还可以帮我们校验出入参的格式，让代码的可读性进一步加强。</p>
+<hr>
+<p>每日踩一坑，生活更轻松。</p>
+<p>本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/about/">关于</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="https://github.com/hope-999">项目</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%A5%E5%8F%82%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="toc-number">1.1.</span> <span class="toc-text">入参的定义</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BF%85%E5%A1%AB%E5%8F%82%E6%95%B0"><span class="toc-number">1.1.1.</span> <span class="toc-text">必填参数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9D%9E%E5%BF%85%E5%A1%AB%E5%8F%82%E6%95%B0"><span class="toc-number">1.1.2.</span> <span class="toc-text">非必填参数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8F%82%E6%95%B0%E9%95%BF%E5%BA%A6%E5%AE%9A%E4%B9%89"><span class="toc-number">1.1.3.</span> <span class="toc-text">字符串参数长度定义</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%82%E6%95%B0%E5%8F%AF%E9%80%89%E5%80%BC"><span class="toc-number">1.1.4.</span> <span class="toc-text">参数可选值</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B5%8C%E5%A5%97%E5%8F%82%E6%95%B0"><span class="toc-number">1.1.5.</span> <span class="toc-text">嵌套参数</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%94%E5%9B%9E%E7%BB%93%E6%9E%84%E4%BD%93%E5%AE%9A%E4%B9%89"><span class="toc-number">1.2.</span> <span class="toc-text">返回结构体定义</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E7%BB%93%E6%9E%84%E4%BD%93%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="toc-number">1.2.1.</span> <span class="toc-text">基础结构体的定义</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E8%A6%81%E8%BF%94%E5%9B%9E%E7%9A%84%E6%95%B0%E6%8D%AE%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.2.2.</span> <span class="toc-text">定义要返回的数据模型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B7%AF%E7%94%B1%E5%87%BD%E6%95%B0%E4%B8%AD%E4%BD%BF%E7%94%A8"><span class="toc-number">1.2.3.</span> <span class="toc-text">路由函数中使用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%94%E5%9B%9E%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.2.4.</span> <span class="toc-text">返回数据格式示例</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B9%9F%E5%8F%AF%E4%BB%A5%E4%B8%8D%E7%94%A8%E5%AE%9A%E4%B9%89PeopleDataModelResponse"><span class="toc-number">1.2.5.</span> <span class="toc-text">也可以不用定义PeopleDataModelResponse</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A6%82%E6%9E%9C%E8%BF%94%E5%9B%9E%E7%9A%84%E6%95%B0%E6%8D%AEdata%E6%98%AF%E5%88%97%E8%A1%A8"><span class="toc-number">1.2.6.</span> <span class="toc-text">如果返回的数据data是列表</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%94%E5%9B%9E%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F%E7%A4%BA%E4%BE%8B-1"><span class="toc-number">1.2.7.</span> <span class="toc-text">返回数据格式示例</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%82%E5%B8%B8%E6%8D%95%E8%8E%B7"><span class="toc-number">1.3.</span> <span class="toc-text">异常捕获</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E5%BC%82%E5%B8%B8%E7%B1%BB"><span class="toc-number">1.3.1.</span> <span class="toc-text">定义异常类</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#fastapi%E6%8D%95%E8%8E%B7%E5%BC%82%E5%B8%B8"><span class="toc-number">1.3.2.</span> <span class="toc-text">fastapi捕获异常</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BB%E5%8A%A8%E6%8A%9B%E5%BC%82%E5%B8%B8"><span class="toc-number">1.3.3.</span> <span class="toc-text">主动抛异常</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8E%A5%E5%8F%A3%E8%BF%94%E5%9B%9E%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="toc-number">1.3.4.</span> <span class="toc-text">接口返回数据结构</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E6%96%87%E6%A1%A3"><span class="toc-number">1.4.</span> <span class="toc-text">生成文档</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.5.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/&text=No.148-fastapi中使用标准化出入参自动化生成接口文档"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/&title=No.148-fastapi中使用标准化出入参自动化生成接口文档"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/&is_video=false&description=No.148-fastapi中使用标准化出入参自动化生成接口文档"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.148-fastapi中使用标准化出入参自动化生成接口文档&body=Check out this article: https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/&title=No.148-fastapi中使用标准化出入参自动化生成接口文档"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/&title=No.148-fastapi中使用标准化出入参自动化生成接口文档"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/&title=No.148-fastapi中使用标准化出入参自动化生成接口文档"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/&title=No.148-fastapi中使用标准化出入参自动化生成接口文档"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/&name=No.148-fastapi中使用标准化出入参自动化生成接口文档&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/&t=No.148-fastapi中使用标准化出入参自动化生成接口文档"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2025
+    Hope
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/hope-999">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

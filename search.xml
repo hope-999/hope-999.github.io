@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>No-150-fastapi中异步函数怎么测试</title>
+    <title>No.150-fastapi中异步函数怎么测试</title>
     <url>/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/</url>
     <content><![CDATA[导读在 fastapi 中，经常会有异步函数，那么在测试的时候，怎么测试异步函数呢？
 需要使用专门的工具和方法。pytest 通过 pytest-asyncio 插件提供了对异步测试的支持。
@@ -40,9 +40,12 @@ legacy - 旧版行为
 每日踩一坑，生活更轻松。
 本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。
 ]]></content>
+      <tags>
+        <tag>fastapi</tag>
+      </tags>
   </entry>
   <entry>
-    <title>No-149-fastapi中模型转json字符串的坑</title>
+    <title>No.149-fastapi中模型转json字符串的坑</title>
     <url>/2025/08/08/No-149-fastapi%E4%B8%AD%E6%A8%A1%E5%9E%8B%E8%BD%ACjson%E5%AD%97%E7%AC%A6%E4%B8%B2%E7%9A%84%E5%9D%91/</url>
     <content><![CDATA[导读在 fastapi 中，使用pydantic定义模型是非常简单的事情，可以让代码变得可读性更强。
 在使用的时候经常遇到 模型 -&gt; json json -&gt; 模型 之间的转换。
@@ -86,9 +89,12 @@ $ pytest -sv app/tests/scripts_service/env_model_test.pyapp/tests/scripts_servic
 每日踩一坑，生活更轻松。
 本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。
 ]]></content>
+      <tags>
+        <tag>fastapi</tag>
+      </tags>
   </entry>
   <entry>
-    <title>No-152-fastapi中如何写webhook接口</title>
+    <title>No.152-fastapi中如何写webhook接口</title>
     <url>/2025/08/11/No-152-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%86%99webhook%E6%8E%A5%E5%8F%A3/</url>
     <content><![CDATA[导读在构建 CICD 的过程中，经常会用到一些工具，比如：Jenkins、GitLab、Coding 等。
 这些构建工具都有一个共同点：它们能支持 webHook 的触发。
@@ -115,9 +121,12 @@ curl --location --request POST &#x27;http://127.0.0.1:9000/webhook/1.0.0&#x27; \
 每日踩一坑，生活更轻松。
 本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。
 ]]></content>
+      <tags>
+        <tag>fastapi</tag>
+      </tags>
   </entry>
   <entry>
-    <title>No-153-fastapi中使用redis-pool连接池</title>
+    <title>No.153-fastapi中使用redis-pool连接池</title>
     <url>/2025/08/12/No-153-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8redispool%E8%BF%9E%E6%8E%A5%E6%B1%A0/</url>
     <content><![CDATA[导读在实际开发过程中，为了提升接口性能，我们经常会选择使用数据库连接池、redis 连接池等。
 通过连接池连接，提升效率，节省内存开销。同时通过将数据缓存到 redis 中，还可以减少网络 IO 开销。
@@ -153,9 +162,12 @@ from fastapi import FastAPI, Dependsfrom deps import RedisPoolDepimport redisapp
 每日踩一坑，生活更轻松。
 本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。
 ]]></content>
+      <tags>
+        <tag>fastapi</tag>
+      </tags>
   </entry>
   <entry>
-    <title>No-151-fastapi中批量更新数据怎么保证数据的一致性</title>
+    <title>No.151-fastapi中批量更新数据怎么保证数据的一致性</title>
     <url>/2025/08/10/No-151-fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7/</url>
     <content><![CDATA[导读在 fastapi 中，API 最常见的情况是批量更新数据，一个逻辑层的函数可能包含多次数据库交互，有新增数据、更新数据逻辑，那么在保证数据的一致性方面应该怎么做呢？
 下面我将详细说明在 FastAPI 中实现批量更新的两种主要方式，并提供完整的代码示例。
@@ -259,5 +271,158 @@ db.rollback() 在异常时回滚
 每日踩一坑，生活更轻松。
 本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。
 ]]></content>
+      <tags>
+        <tag>fastapi</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>No.154-如何在fastapi中使用BackgroundTasks</title>
+    <url>/2025/08/12/No-154-%E5%A6%82%E4%BD%95%E5%9C%A8fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8BackgroundTasks/</url>
+    <content><![CDATA[导读FastAPI 的 BackgroundTasks 功能允许你将任务添加到后台执行，这样可以在响应返回给客户端后继续处理耗时操作。
+常用的场景有发送邮件，发送短信等。
+这个功能尽量不要使用在生产环境，如果功能是边缘业务，倒是可以使用，简单方便。它的缺点就是出了问题，很难定位问题所在。需要添加详细的日志信息。
+以下是使用 BackgroundTasks 的详细指南：
+基本用法
+首先导入 BackgroundTasks：
+
+from fastapi import BackgroundTasks, FastAPI
+
+
+创建 FastAPI 应用并定义后台任务函数：
+
+app = FastAPI()def write_log(message: str):    with open(&quot;log.txt&quot;, mode=&quot;a&quot;) as log:        log.write(message)def send_email(email: str, message: str):    # 模拟发送电子邮件    print(f&quot;发送邮件到 &#123;email&#125;: &#123;message&#125;&quot;)
+
+
+在路径操作中使用 BackgroundTasks：
+
+@app.post(&quot;/send-notification/&#123;email&#125;&quot;)async def send_notification(email: str, background_tasks: BackgroundTasks):    background_tasks.add_task(send_email, email, message=&quot;这是一条通知&quot;)    background_tasks.add_task(write_log, f&quot;发送通知到 &#123;email&#125;&quot;)    return &#123;&quot;message&quot;: &quot;通知已发送&quot;&#125;
+
+高级用法1. 依赖注入你可以将 BackgroundTasks 作为依赖项注入：
+from fastapi import Dependsdef get_background_tasks(background_tasks: BackgroundTasks = BackgroundTasks()):    return background_tasks@app.post(&quot;/another-route&quot;)async def another_route(background_tasks: BackgroundTasks = Depends(get_background_tasks)):    background_tasks.add_task(some_task)    return &#123;&quot;message&quot;: &quot;任务已添加&quot;&#125;
+
+2. 与路径操作函数一起使用后台任务可以与常规路径操作函数一起使用：
+@app.post(&quot;/process-data&quot;)async def process_data(    data: dict,    background_tasks: BackgroundTasks):    # 立即处理一些数据    processed_data = &#123;k: v.upper() for k, v in data.items()&#125;        # 添加后台任务    background_tasks.add_task(store_data_in_db, processed_data)        return &#123;&quot;processed_data&quot;: processed_data&#125;
+
+3. 类方法作为后台任务你也可以使用类方法作为后台任务：
+class NotificationService:    @classmethod    def send_email(cls, email: str, message: str):        # 发送邮件逻辑        pass@app.post(&quot;/send-email&quot;)async def send_email_route(    email: str,     background_tasks: BackgroundTasks):    background_tasks.add_task(        NotificationService.send_email,        email,        message=&quot;Hello from FastAPI&quot;    )    return &#123;&quot;status&quot;: &quot;Email will be sent&quot;&#125;
+
+注意事项
+任务顺序：添加任务的顺序就是它们执行的顺序。
+
+异常处理：后台任务中的异常不会传播到主请求，需要自行处理。
+
+测试：在测试时，可以使用 BackgroundTasks 的 tasks 属性来检查添加的任务：
+
+
+def test_background_task():    background_tasks = BackgroundTasks()    test_app.add_task(some_task)    assert len(background_tasks.tasks) == 1
+
+
+长时间运行任务：对于非常耗时的任务，考虑使用 Celery 或其他任务队列。
+
+依赖项：后台任务函数可以接受 FastAPI 的依赖项。
+
+
+完整示例from fastapi import FastAPI, BackgroundTasksimport timeapp = FastAPI()def process_data_in_background(data: dict):    # 模拟耗时操作    time.sleep(5)    with open(&quot;processed_data.txt&quot;, &quot;a&quot;) as f:        f.write(f&quot;&#123;data&#125;\n&quot;)@app.post(&quot;/process/&quot;)async def process_data(data: dict, background_tasks: BackgroundTasks):    background_tasks.add_task(process_data_in_background, data)    return &#123;&quot;message&quot;: &quot;数据正在后台处理&quot;, &quot;data&quot;: data&#125;
+
+通过这种方式，你可以轻松地将耗时操作放到后台执行，同时立即返回响应给客户端。
+
+每日踩一坑，生活更轻松。
+本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。
+]]></content>
+      <tags>
+        <tag>fastapi</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>No.148-fastapi中使用标准化出入参自动化生成接口文档</title>
+    <url>/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/</url>
+    <content><![CDATA[导读在 fastapi 中，自动化生成文档是一个非常简单的事情。
+但是也需要遵循一些非常必要的规则来帮助我们更好的生成便于阅读的文档。
+这篇文章将介绍从入参的定义、到返回结构体的定义，异常捕获几个方面来规范接口开发文档。
+使用的参数校验库为：pydantic。
+入参的定义必填参数from typing import Optional, List, Literal, Unionfrom pydantic import BaseModel, Fieldclass RemoveModuleRequest(BaseModel):    service_id: int = Field(..., description=&quot;服务 id&quot;)
+
+说明：
+
+定义 class 类
+继承 BaseModel
+使用 Field 定义参数类型等。
+这里定义了service_id字段为int类型
+Field 第一个参数的默认值为 ...，就表示是必填参数
+
+非必填参数from typing import Optional, List, Literal, Unionfrom pydantic import BaseModel, Fieldclass ModuleCaseManagerCaseListRequest(BaseModel):    order_id: Optional[int] = Field(default=None, description=&quot;工单id&quot;)
+
+说明：
+
+这里定义了order_id字段为int类型
+使用 Optional 包裹住 int 表示非必填
+结合Field 第一个参数的默认值为 default=None，就表示是非必填参数
+
+注意：这里的 default=None 不能简写成 None，简写之后文档将识别不了，不知道这个问题 fastapi 官方修复了没。
+字符串参数长度定义from typing import Optional, List, Literal, Unionfrom pydantic import BaseModel, Fieldclass ModuleCaseManagerCaseListRequest(BaseModel):    env_id: Optional[str] = Field(default=None, max_length=8, min_length=4, description=&quot;工单id&quot;)
+
+说明：
+
+这里定义了env_id字段为str类型
+使用 Optional 包裹住 str 表示非必填
+结合Field 第一个参数的默认值为 default=None，就表示是非必填参数
+max_length 定义字段最长为 8 个字符
+min_length 定义字段最短为 4 个字符
+
+参数可选值class RequestEnv(BaseModel):    env: Literal[&quot;dev&quot;, &quot;test&quot;, &quot;pro&quot;] = Field(        ..., description=&quot;环境: dev-开发, test-测试, pro-现网&quot;    )
+
+说明：
+
+Literal[&quot;dev&quot;, &quot;test&quot;, &quot;pro&quot;] 定义可选值
+
+嵌套参数以上处理的都是层级比较单一的入参例如格式这样的:
+ &#123;    &quot;service&quot;: &quot;&quot;,    &quot;plan_id&quot;: &quot;0&quot;,    &quot;order_id&quot;: &quot;0&quot;,    &quot;env_id&quot;: &quot;&quot;&#125;
+
+如果要处理多个层级的入参，例如这样的参数怎么处理:
+  &#123;    &quot;services&quot;: [&#123;        &quot;service_type&quot;: &quot;&quot;,        &quot;service_info_id&quot;: 0,        &quot;branch_id&quot;: 0,        &quot;api_ids&quot;: [101, 201, 345]    &#125;],    &quot;plan_id&quot;: &quot;0&quot;,    &quot;order_id&quot;: &quot;0&quot;,    &quot;env_id&quot;: &quot;&quot;&#125;
+
+ 只需要再定义一个模型，进行嵌套即可：
+ class ApiCaseManagerRunCaseServiceData(BaseModel):    service_type: str = Field(..., description=&quot;服务类型&quot;)    service_info_id: int = Field(..., description=&quot;服务id&quot;)    branch_id: int = Field(..., description=&quot;分支id&quot;)    api_ids: list = Field(..., description=&quot;接口id列表&quot;, example=[101, 201, 345])class ApiCaseManagerRunCaseRequest(BaseModel):    services: List[ApiCaseManagerRunCaseServiceData] = Field(..., description=&quot;服务列表&quot;) # 这里嵌套模型    plan_id: Optional[int] = Field(default=0, description=&quot;计划 ID，关联业务计划的标识&quot;)    order_id: Optional[int] = Field(default=0, description=&quot;工单id&quot;)    env_id: str = Field(..., description=&quot;环境id&quot;)
+
+返回结构体定义基础结构体的定义T = TypeVar(&quot;T&quot;)  # 泛型类型变量，用于data字段class BaseResponse(BaseModel, Generic[T]):    &quot;&quot;&quot;    基础响应模型，所有API响应都应继承此模型    &quot;&quot;&quot;    code: int = Field(default=0, description=&quot;状态码，0表示成功，非0表示错误&quot;, example=0)    rec_ts: float = Field(        ...,        description=&quot;请求接收时间戳（Unix时间戳，精确到毫秒）&quot;,        example=1611399999.999999,    )    rsp_ts: float = Field(        ...,        description=&quot;响应生成时间戳（Unix时间戳，精确到毫秒）&quot;,        example=1611399999.999999,    )    msg: str = Field(        default=&quot;success&quot;,        description=&quot;状态消息，成功时为&#x27;success&#x27;，错误时为错误描述&quot;,        example=&quot;success&quot;,    )    data: Optional[T] = Field(default=None, description=&quot;实际返回的数据内容，错误时为null&quot;)    @classmethod    def success(cls, data: T = None, msg: str = &quot;success&quot;):        &quot;&quot;&quot;成功的快捷方法&quot;&quot;&quot;        now = datetime.now().timestamp()        return cls(code=0, rec_ts=now, rsp_ts=now, msg=msg, data=data)
+
+定义要返回的数据模型class PeopleDataModel(BaseModel):    numbers: List[int]    people: List[str]class PeopleDataModelResponse(BaseResponse[PeopleDataModel]):    pass
+
+路由函数中使用@router.post(&quot;/case_list/1.0.0&quot;, response_model=PeopleDataModelResponse, name=&quot;用例列表&quot;)def case_list(    db_session: DbSessionDep    request: ApiCaseManagerCaseListRequest) -&gt; Any:    &quot;&quot;&quot;用例列表    Args:        db_session: 数据库连接        request: 请求参数    Returns:        Any    &quot;&quot;&quot;    # 获取查询结果（列表）    data = case_list_crud(request, db_session)    return PeopleDataModelResponse.success(data=data)
+
+返回数据格式示例&#123;  &quot;code&quot;: 0,  &quot;rec_ts&quot;: 1611399999.999999,  &quot;rsp_ts&quot;: 1611399999.999999,  &quot;msg&quot;: &quot;success&quot;,  &quot;data&quot;:&#123;      &quot;numbers&quot;: 0,      &quot;people&quot;: &quot; 小明&quot;    &#125;&#125;
+
+也可以不用定义PeopleDataModelResponse@router.post(&quot;/case_list/1.0.0&quot;, response_model=BaseResponse[PeopleDataModel], name=&quot;用例列表&quot;)def case_list(    db_session: DbSessionDep    request: ApiCaseManagerCaseListRequest) -&gt; Any:    &quot;&quot;&quot;用例列表    Args:        db_session: 数据库连接        request: 请求参数    Returns:        Any    &quot;&quot;&quot;    # 获取查询结果（列表）    data = case_list_crud(request, db_session)    return BaseResponse[PeopleDataModel].success(data=data)
+
+如果返回的数据data是列表from typing import List@router.post(&quot;/case_list/1.0.0&quot;, response_model=BaseResponse[List[PeopleDataModel]], name=&quot;用例列表&quot;)def case_list(    db_session: DbSessionDep    request: ApiCaseManagerCaseListRequest) -&gt; Any:    &quot;&quot;&quot;用例列表    Args:        db_session: 数据库连接        request: 请求参数    Returns:        Any    &quot;&quot;&quot;    # 获取查询结果（列表）    data = case_list_crud(request, db_session) # 返回的列表中数据的类型是 PeopleDataModel    return BaseResponse[List[PeopleDataModel]].success(data=data)
+
+返回数据格式示例&#123;  &quot;code&quot;: 0,  &quot;rec_ts&quot;: 1611399999.999999,  &quot;rsp_ts&quot;: 1611399999.999999,  &quot;msg&quot;: &quot;success&quot;,  &quot;data&quot;:[    &#123;    &quot;numbers&quot;: 0,    &quot;people&quot;: &quot; 小明&quot;    &#125;,    &#123;    &quot;numbers&quot;: 2,    &quot;people&quot;: &quot; 小蘑菇&quot;    &#125;  ]&#125;
+
+返回体结构灵感来源：https://docs.pydantic.dev/2.8/concepts/models/#generic-models 中的 Generic models 章节。
+异常捕获定义异常类class ResponseErrorV2(Exception):    def __init__(self, status_code: int, code: int, msg: str):        self.status_code = status_code        self.code = code        self.msg = msg
+
+fastapi捕获异常main.py 入口函数：
+@app.exception_handler(ResponseErrorV2)async def custom_error_handler(request: Request, exc: ResponseErrorV2):    return JSONResponse(        status_code=exc.status_code,        content=&#123;&quot;code&quot;: exc.code, &quot;msg&quot;: exc.msg&#125;,    )
+
+主动抛异常raise ResponseErrorV2(status_code=400, code=400001, msg=&quot;请求头必须携带Token&quot;)
+
+接口返回数据结构status: 400
+&#123;  &quot;code&quot;: 400001,  &quot;msg&quot;: &quot;请求头必须携带Token&quot;&#125;
+
+
+生成文档启动fastapi服务，编写shell脚本：generate_swagger.sh
+#! /bin/bashcurl -X GET http://127.0.0.1:9000/openapi.json &gt; docs/api/swagger.json
+
+分别执行如下命令：
+chmod +x generate_swagger.sh./generate_swagger.sh
+
+总结pydantic 不仅可以在编写代码的过程中规范书写格式，还能自动化生成文档，还可以帮我们校验出入参的格式，让代码的可读性进一步加强。
+
+每日踩一坑，生活更轻松。
+本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。
+]]></content>
+      <tags>
+        <tag>fastapi</tag>
+      </tags>
   </entry>
 </search>
