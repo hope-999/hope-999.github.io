@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>No.150-fastapi中异步函数怎么测试</title>
+    <title>No-150-fastapi中异步函数怎么测试</title>
     <url>/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/</url>
     <content><![CDATA[导读在 fastapi 中，经常会有异步函数，那么在测试的时候，怎么测试异步函数呢？
 需要使用专门的工具和方法。pytest 通过 pytest-asyncio 插件提供了对异步测试的支持。
@@ -42,7 +42,7 @@ legacy - 旧版行为
 ]]></content>
   </entry>
   <entry>
-    <title>No.149-fastapi中模型转json字符串的坑</title>
+    <title>No-149-fastapi中模型转json字符串的坑</title>
     <url>/2025/08/08/No-149-fastapi%E4%B8%AD%E6%A8%A1%E5%9E%8B%E8%BD%ACjson%E5%AD%97%E7%AC%A6%E4%B8%B2%E7%9A%84%E5%9D%91/</url>
     <content><![CDATA[导读在 fastapi 中，使用pydantic定义模型是非常简单的事情，可以让代码变得可读性更强。
 在使用的时候经常遇到 模型 -&gt; json json -&gt; 模型 之间的转换。
