@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="导读fastapi 项目代码写完了，怎么打包部署？ 部署到 k8s 集群中，Dockerfile 怎么写呢？ 以下是针对 FastAPI 项目的 生产级 Dockerfile 示例，包含性能优化、安全实践和 Kubernetes 适配建议，支持异步请求和高并发场景： 优化版 Dockerfile（支持 ASGI + 多阶段构建）12345678910111213141516171819202122">
+<meta property="og:type" content="article">
+<meta property="og:title" content="No.155.fastapi项目中Dockerfile怎么写">
+<meta property="og:url" content="https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/index.html">
+<meta property="og:site_name" content="Hope 的博客">
+<meta property="og:description" content="导读fastapi 项目代码写完了，怎么打包部署？ 部署到 k8s 集群中，Dockerfile 怎么写呢？ 以下是针对 FastAPI 项目的 生产级 Dockerfile 示例，包含性能优化、安全实践和 Kubernetes 适配建议，支持异步请求和高并发场景： 优化版 Dockerfile（支持 ASGI + 多阶段构建）12345678910111213141516171819202122">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-08-14T03:13:24.000Z">
+<meta property="article:modified_time" content="2025-08-14T03:18:07.653Z">
+<meta property="article:author" content="Hope">
+<meta property="article:tag" content="fastapi">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>No.155.fastapi项目中Dockerfile怎么写</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2025/08/14/No-147-Python%E7%94%9F%E6%88%90%E4%B8%8D%E9%87%8D%E5%A4%8D%E7%9A%84%E5%88%86%E6%94%AF%E5%90%8D/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&text=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&is_video=false&description=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.155.fastapi项目中Dockerfile怎么写&body=Check out this article: https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&name=No.155.fastapi项目中Dockerfile怎么写&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&t=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8C%96%E7%89%88-Dockerfile%EF%BC%88%E6%94%AF%E6%8C%81-ASGI-%E5%A4%9A%E9%98%B6%E6%AE%B5%E6%9E%84%E5%BB%BA%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">优化版 Dockerfile（支持 ASGI + 多阶段构建）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E4%BC%98%E5%8C%96%E7%82%B9%E8%A7%A3%E6%9E%90"><span class="toc-number">1.2.</span> <span class="toc-text">关键优化点解析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8D%E5%90%8C%E5%9C%BA%E6%99%AF%E7%9A%84%E5%90%AF%E5%8A%A8%E5%91%BD%E4%BB%A4%E8%B0%83%E6%95%B4"><span class="toc-number">1.3.</span> <span class="toc-text">不同场景的启动命令调整</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E5%A5%97%E7%9A%84-requirements-txt-%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.4.</span> <span class="toc-text">配套的 requirements.txt 建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">1.5.</span> <span class="toc-text">常见问题解决方案</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        No.155.fastapi项目中Dockerfile怎么写
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Hope</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-08-14T03:13:24.000Z" class="dt-published" itemprop="datePublished">2025-08-14</time>
+        
+        (Updated: <time datetime="2025-08-14T03:18:07.653Z" class="dt-updated" itemprop="dateModified">2025-08-14</time>)
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/fastapi/" rel="tag">fastapi</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="导读"><a href="#导读" class="headerlink" title="导读"></a>导读</h2><p><code>fastapi</code> 项目代码写完了，怎么打包部署？</p>
+<p>部署到 <code>k8s</code> 集群中，<code>Dockerfile</code> 怎么写呢？</p>
+<p>以下是针对 <code>FastAPI</code> 项目的 <strong>生产级</strong> <code>Dockerfile</code> 示例，包含性能优化、安全实践和 Kubernetes 适配建议，支持异步请求和高并发场景：</p>
+<h3 id="优化版-Dockerfile（支持-ASGI-多阶段构建）"><a href="#优化版-Dockerfile（支持-ASGI-多阶段构建）" class="headerlink" title="优化版 Dockerfile（支持 ASGI + 多阶段构建）"></a>优化版 Dockerfile（支持 ASGI + 多阶段构建）</h3><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 阶段1：构建依赖</span></span><br><span class="line"><span class="keyword">FROM</span> python:<span class="number">3.11</span>-slim as builder</span><br><span class="line"></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="language-bash"> /app</span></span><br><span class="line"><span class="keyword">ENV</span> PYTHONUNBUFFERED=<span class="number">1</span> \</span><br><span class="line">    PIP_NO_CACHE_DIR=<span class="number">1</span> \</span><br><span class="line">    PIP_DISABLE_PIP_VERSION_CHECK=<span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装系统依赖（根据项目需求调整）</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> apt-get update &amp;&amp; apt-get install -y --no-install-recommends \</span></span><br><span class="line"><span class="language-bash">    gcc python3-dev &amp;&amp; \</span></span><br><span class="line"><span class="language-bash">    <span class="built_in">rm</span> -rf /var/lib/apt/lists/*</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装Python依赖（分层优化，利用Docker缓存）</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> requirements.txt .</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> pip install --user --no-warn-script-location -r requirements.txt</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ---</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 阶段2：生产镜像</span></span><br><span class="line"><span class="keyword">FROM</span> python:<span class="number">3.11</span>-slim</span><br><span class="line"></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="language-bash"> /app</span></span><br><span class="line"><span class="comment"># 从builder阶段复制已安装的Python包</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --from=builder /root/.local /root/.local</span></span><br><span class="line"><span class="comment"># 复制项目代码（通过.dockerignore过滤无关文件）</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> . .</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 安全配置：使用非root用户</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> useradd -m appuser &amp;&amp; <span class="built_in">chown</span> -R appuser /app</span></span><br><span class="line"><span class="keyword">USER</span> appuser</span><br><span class="line"></span><br><span class="line"><span class="comment"># 环境变量</span></span><br><span class="line"><span class="keyword">ENV</span> PATH=/home/appuser/.local/bin:$PATH \</span><br><span class="line">    PYTHONUNBUFFERED=<span class="number">1</span> \</span><br><span class="line">    PYTHONPATH=/app \</span><br><span class="line">    UVICORN_HOST=<span class="number">0.0</span>.<span class="number">0.0</span> \</span><br><span class="line">    UVICORN_PORT=<span class="number">8000</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 暴露端口</span></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">8000</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 健康检查端点（需在FastAPI中实现/health）</span></span><br><span class="line"><span class="keyword">HEALTHCHECK</span><span class="language-bash"> --interval=30s --<span class="built_in">timeout</span>=3s \</span></span><br><span class="line"><span class="language-bash">  CMD curl -f http://localhost:8000/health || <span class="built_in">exit</span> 1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 启动命令（推荐使用Uvicorn + Gunicorn组合）</span></span><br><span class="line"><span class="keyword">CMD</span><span class="language-bash"> [<span class="string">&quot;gunicorn&quot;</span>, <span class="string">&quot;-k&quot;</span>, <span class="string">&quot;uvicorn.workers.UvicornWorker&quot;</span>, <span class="string">&quot;--bind&quot;</span>, <span class="string">&quot;0.0.0.0:8000&quot;</span>, <span class="string">&quot;--workers&quot;</span>, <span class="string">&quot;4&quot;</span>, <span class="string">&quot;app.main:app&quot;</span>]</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="关键优化点解析"><a href="#关键优化点解析" class="headerlink" title="关键优化点解析"></a><strong>关键优化点解析</strong></h3><ol>
+<li><p><strong>ASGI 服务器选择</strong>  </p>
+<ul>
+<li>使用 <code>UvicornWorker</code> + <code>Gunicorn</code> 组合：<ul>
+<li>Uvicorn 处理异步请求</li>
+<li>Gunicorn 管理进程（建议 worker 数 &#x3D; <code>min(2*CPU核心+1, 8)</code>）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>安全增强</strong>  </p>
+<ul>
+<li>禁用 root 用户运行容器</li>
+<li>通过 <code>.dockerignore</code> 排除 <code>__pycache__</code>、<code>.env</code> 等敏感文件</li>
+<li>使用 <code>--no-warn-script-location</code> 避免权限警告</li>
+</ul>
+</li>
+<li><p><strong>Kubernetes 适配</strong>  </p>
+<ul>
+<li><p><strong>健康检查</strong>：在 Deployment 中配置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">livenessProbe:</span></span><br><span class="line">  <span class="attr">httpGet:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">/health</span></span><br><span class="line">    <span class="attr">port:</span> <span class="number">8000</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>资源限制</strong>：建议在 K8s 中设置 CPU&#x2F;Memory 限制</p>
+</li>
+<li><p><strong>环境变量</strong>：敏感配置通过 K8s Secrets 注入</p>
+</li>
+</ul>
+</li>
+<li><p><strong>性能优化</strong>  </p>
+<ul>
+<li>多阶段构建减少镜像体积（最终镜像约 150MB）</li>
+<li>依赖分层安装（修改代码时不会重新安装依赖）</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="不同场景的启动命令调整"><a href="#不同场景的启动命令调整" class="headerlink" title="不同场景的启动命令调整"></a><strong>不同场景的启动命令调整</strong></h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>CMD 指令示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>纯开发环境</td>
+<td><code>CMD [&quot;uvicorn&quot;, &quot;app.main:app&quot;, &quot;--reload&quot;, &quot;--host&quot;, &quot;0.0.0.0&quot;]</code></td>
+</tr>
+<tr>
+<td>高并发生产环境</td>
+<td><code>CMD [&quot;gunicorn&quot;, &quot;-k&quot;, &quot;uvicorn.workers.UvicornWorker&quot;, &quot;--bind&quot;, &quot;...&quot;]</code></td>
+</tr>
+<tr>
+<td>单节点测试</td>
+<td><code>CMD [&quot;uvicorn&quot;, &quot;app.main:app&quot;, &quot;--workers&quot;, &quot;4&quot;]</code></td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="配套的-requirements-txt-建议"><a href="#配套的-requirements-txt-建议" class="headerlink" title="配套的 requirements.txt 建议"></a><strong>配套的 requirements.txt 建议</strong></h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">fastapi==0.109.0</span><br><span class="line">uvicorn==0.27.0</span><br><span class="line">gunicorn==21.2.0</span><br><span class="line"># 其他依赖...</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="常见问题解决方案"><a href="#常见问题解决方案" class="headerlink" title="常见问题解决方案"></a><strong>常见问题解决方案</strong></h3><ol>
+<li><p><strong>静态文件处理</strong><br>添加 Nginx 容器或通过 Kubernetes Ingress 配置：</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">RUN</span><span class="language-bash"> pip install aiofiles  <span class="comment"># 用于异步静态文件处理</span></span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>Alpine 镜像问题</strong><br>如需更小镜像，可替换基础镜像为 <code>python:3.11-alpine</code>，但需注意：</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">RUN</span><span class="language-bash"> apk add --no-cache gcc musl-dev  <span class="comment"># Alpine版gcc</span></span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>超时控制</strong><br>在 Gunicorn 中增加参数：</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CMD</span><span class="language-bash"> [<span class="string">&quot;gunicorn&quot;</span>, <span class="string">&quot;--timeout&quot;</span>, <span class="string">&quot;120&quot;</span>, <span class="string">&quot;...&quot;</span>]</span></span><br></pre></td></tr></table></figure></li>
+</ol>
+<hr>
+<p>每日踩一坑，生活更轻松。</p>
+<p>本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/about/">关于</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/tags/">标签</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/projects/">项目</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8C%96%E7%89%88-Dockerfile%EF%BC%88%E6%94%AF%E6%8C%81-ASGI-%E5%A4%9A%E9%98%B6%E6%AE%B5%E6%9E%84%E5%BB%BA%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">优化版 Dockerfile（支持 ASGI + 多阶段构建）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E4%BC%98%E5%8C%96%E7%82%B9%E8%A7%A3%E6%9E%90"><span class="toc-number">1.2.</span> <span class="toc-text">关键优化点解析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8D%E5%90%8C%E5%9C%BA%E6%99%AF%E7%9A%84%E5%90%AF%E5%8A%A8%E5%91%BD%E4%BB%A4%E8%B0%83%E6%95%B4"><span class="toc-number">1.3.</span> <span class="toc-text">不同场景的启动命令调整</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E5%A5%97%E7%9A%84-requirements-txt-%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.4.</span> <span class="toc-text">配套的 requirements.txt 建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">1.5.</span> <span class="toc-text">常见问题解决方案</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&text=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&is_video=false&description=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.155.fastapi项目中Dockerfile怎么写&body=Check out this article: https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&name=No.155.fastapi项目中Dockerfile怎么写&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&t=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2025
+    Hope
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
