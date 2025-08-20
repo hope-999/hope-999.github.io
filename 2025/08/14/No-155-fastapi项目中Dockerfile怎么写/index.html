@@ -14,7 +14,7 @@
 <meta property="og:description" content="导读fastapi 项目代码写完了，怎么打包部署？ 部署到 k8s 集群中，Dockerfile 怎么写呢？ 以下是针对 FastAPI 项目的 生产级 Dockerfile 示例，包含性能优化、安全实践和 Kubernetes 适配建议，支持异步请求和高并发场景： 优化版 Dockerfile（支持 ASGI + 多阶段构建）12345678910111213141516171819202122">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-08-14T03:13:24.000Z">
-<meta property="article:modified_time" content="2025-08-18T13:04:43.023Z">
+<meta property="article:modified_time" content="2025-08-20T09:56:20.830Z">
 <meta property="article:author" content="Hope">
 <meta property="article:tag" content="fastapi">
 <meta name="twitter:card" content="summary">
@@ -86,6 +86,8 @@
     <span id="actions">
       <ul>
         
+        <li><a class="icon" aria-label="上一篇" href="/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
         
         <li><a class="icon" aria-label="下一篇" href="/2025/08/14/No-147-Python%E7%94%9F%E6%88%90%E4%B8%8D%E9%87%8D%E5%A4%8D%E7%9A%84%E5%88%86%E6%94%AF%E5%90%8D/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
         
@@ -144,7 +146,7 @@
       
         <time datetime="2025-08-14T03:13:24.000Z" class="dt-published" itemprop="datePublished">2025-08-14</time>
         
-        (Updated: <time datetime="2025-08-18T13:04:43.023Z" class="dt-updated" itemprop="dateModified">2025-08-18</time>)
+        (Updated: <time datetime="2025-08-20T09:56:20.830Z" class="dt-updated" itemprop="dateModified">2025-08-20</time>)
         
       
     </div>
@@ -245,7 +247,7 @@
 <p><code>run_main.sh</code>:</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#! /bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> PYTHONPATH=/code:<span class="variable">$PYTHONPATH</span></span><br><span class="line">fastapi run --port 9000</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-<p>本地开发环境，<code>run_main.sh</code>的启动脚本：</p>
+<p>本地开发环境，<code>run_dev.sh</code>的启动脚本：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#! /bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> PYTHONPATH=/code:<span class="variable">$PYTHONPATH</span></span><br><span class="line">fastapi dev --port 9000 --reload</span><br></pre></td></tr></table></figure>
 
 <hr>

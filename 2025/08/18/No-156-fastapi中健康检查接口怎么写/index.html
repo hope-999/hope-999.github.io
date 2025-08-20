@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="导读fastapi 项目代码写完了，部署的时候，运维同学要求要有 health 健康检查接口，怎么办？ 基础实现（简单版）12345678from fastapi import FastAPI, APIRouterapp &#x3D; FastAPI()# 健康检查端点@app.get(&quot;&#x2F;health&quot;)async def health_check():    return &amp;#123">
+<meta property="og:type" content="article">
+<meta property="og:title" content="No.156.fastapi项目中Dockerfile怎么写">
+<meta property="og:url" content="https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/index.html">
+<meta property="og:site_name" content="Hope 的博客">
+<meta property="og:description" content="导读fastapi 项目代码写完了，部署的时候，运维同学要求要有 health 健康检查接口，怎么办？ 基础实现（简单版）12345678from fastapi import FastAPI, APIRouterapp &#x3D; FastAPI()# 健康检查端点@app.get(&quot;&#x2F;health&quot;)async def health_check():    return &amp;#123">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-08-18T03:13:24.000Z">
+<meta property="article:modified_time" content="2025-08-18T13:18:37.237Z">
+<meta property="article:author" content="Hope">
+<meta property="article:tag" content="fastapi">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>No.156.fastapi项目中Dockerfile怎么写</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/&text=No.156.fastapi项目中Dockerfile怎么写"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/&title=No.156.fastapi项目中Dockerfile怎么写"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/&is_video=false&description=No.156.fastapi项目中Dockerfile怎么写"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.156.fastapi项目中Dockerfile怎么写&body=Check out this article: https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/&title=No.156.fastapi项目中Dockerfile怎么写"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/&title=No.156.fastapi项目中Dockerfile怎么写"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/&title=No.156.fastapi项目中Dockerfile怎么写"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/&title=No.156.fastapi项目中Dockerfile怎么写"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/&name=No.156.fastapi项目中Dockerfile怎么写&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/&t=No.156.fastapi项目中Dockerfile怎么写"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E5%AE%9E%E7%8E%B0%EF%BC%88%E7%AE%80%E5%8D%95%E7%89%88%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">基础实现（简单版）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AB%98%E7%BA%A7%E5%AE%9E%E7%8E%B0%EF%BC%88%E5%B8%A6%E6%A0%B8%E5%BF%83%E4%BE%9D%E8%B5%96%E6%A3%80%E6%9F%A5%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">高级实现（带核心依赖检查）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-APIRouter%EF%BC%88%E6%8E%A8%E8%8D%90%E7%94%A8%E4%BA%8E%E6%A8%A1%E5%9D%97%E5%8C%96%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">使用 APIRouter（推荐用于模块化）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E"><span class="toc-number">1.4.</span> <span class="toc-text">关键配置说明</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">1.5.</span> <span class="toc-text">生产环境最佳实践</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E6%96%B9%E6%B3%95"><span class="toc-number">1.6.</span> <span class="toc-text">测试方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%83%A8%E7%BD%B2%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">1.7.</span> <span class="toc-text">部署注意事项</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.8.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        No.156.fastapi项目中Dockerfile怎么写
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Hope</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-08-18T03:13:24.000Z" class="dt-published" itemprop="datePublished">2025-08-18</time>
+        
+        (Updated: <time datetime="2025-08-18T13:18:37.237Z" class="dt-updated" itemprop="dateModified">2025-08-18</time>)
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/fastapi/" rel="tag">fastapi</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="导读"><a href="#导读" class="headerlink" title="导读"></a>导读</h2><p><code>fastapi</code> 项目代码写完了，部署的时候，运维同学要求要有 <code>health</code> 健康检查接口，怎么办？</p>
+<h3 id="基础实现（简单版）"><a href="#基础实现（简单版）" class="headerlink" title="基础实现（简单版）"></a>基础实现（简单版）</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, APIRouter</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 健康检查端点</span></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/health&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">health_check</span>():</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;status&quot;</span>: <span class="string">&quot;ok&quot;</span>, <span class="string">&quot;message&quot;</span>: <span class="string">&quot;Service is healthy&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="高级实现（带核心依赖检查）"><a href="#高级实现（带核心依赖检查）" class="headerlink" title="高级实现（带核心依赖检查）"></a>高级实现（带核心依赖检查）</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, APIRouter, Depends, HTTPException</span><br><span class="line"><span class="keyword">from</span> sqlalchemy <span class="keyword">import</span> text</span><br><span class="line"><span class="keyword">from</span> redis <span class="keyword">import</span> Redis</span><br><span class="line"><span class="keyword">from</span> .database <span class="keyword">import</span> SessionLocal  <span class="comment"># 假设你有一个数据库会话</span></span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 依赖项示例</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_db</span>():</span><br><span class="line">    db = SessionLocal()</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">yield</span> db</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        db.close()</span><br><span class="line"></span><br><span class="line"><span class="comment"># Redis 连接检查</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">check_redis</span>():</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        redis = Redis(host=<span class="string">&quot;localhost&quot;</span>, port=<span class="number">6379</span>, db=<span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> redis.ping()</span><br><span class="line">    <span class="keyword">except</span> Exception:</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 完整健康检查</span></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/health&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">health_check</span>(<span class="params">db: SessionLocal = Depends(<span class="params">get_db</span>)</span>):</span><br><span class="line">    checks = &#123;</span><br><span class="line">        <span class="string">&quot;database&quot;</span>: <span class="literal">False</span>,</span><br><span class="line">        <span class="string">&quot;redis&quot;</span>: <span class="literal">False</span>,</span><br><span class="line">        <span class="string">&quot;service&quot;</span>: <span class="literal">True</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 数据库检查</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        db.execute(text(<span class="string">&quot;SELECT 1&quot;</span>))</span><br><span class="line">        checks[<span class="string">&quot;database&quot;</span>] = <span class="literal">True</span></span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># Redis检查</span></span><br><span class="line">    checks[<span class="string">&quot;redis&quot;</span>] = check_redis()</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 综合状态</span></span><br><span class="line">    overall_status = <span class="built_in">all</span>(checks.values())</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> overall_status:</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(</span><br><span class="line">            status_code=<span class="number">503</span>,</span><br><span class="line">            detail=<span class="string">&quot;Service Unavailable&quot;</span>,</span><br><span class="line">            headers=&#123;<span class="string">&quot;Retry-After&quot;</span>: <span class="string">&quot;10&quot;</span>&#125;</span><br><span class="line">        )</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        <span class="string">&quot;status&quot;</span>: <span class="string">&quot;ok&quot;</span> <span class="keyword">if</span> overall_status <span class="keyword">else</span> <span class="string">&quot;degraded&quot;</span>,</span><br><span class="line">        <span class="string">&quot;checks&quot;</span>: checks</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="使用-APIRouter（推荐用于模块化）"><a href="#使用-APIRouter（推荐用于模块化）" class="headerlink" title="使用 APIRouter（推荐用于模块化）"></a>使用 APIRouter（推荐用于模块化）</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># health_router.py</span></span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> APIRouter, Depends</span><br><span class="line"><span class="keyword">from</span> .dependencies <span class="keyword">import</span> get_db  <span class="comment"># 导入你的依赖项</span></span><br><span class="line"></span><br><span class="line">router = APIRouter(tags=[<span class="string">&quot;Monitoring&quot;</span>])</span><br><span class="line"></span><br><span class="line"><span class="meta">@router.get(<span class="params"><span class="string">&quot;/health&quot;</span>, summary=<span class="string">&quot;服务健康检查&quot;</span>, response_description=<span class="string">&quot;返回服务状态&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">health_check</span>(<span class="params">db = Depends(<span class="params">get_db</span>)</span>):</span><br><span class="line">    <span class="comment"># 实现检查逻辑...</span></span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;status&quot;</span>: <span class="string">&quot;ok&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># main.py</span></span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI</span><br><span class="line"><span class="keyword">from</span> .routers <span class="keyword">import</span> health_router</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line">app.include_router(health_router.router)</span><br></pre></td></tr></table></figure>
+
+<h3 id="关键配置说明"><a href="#关键配置说明" class="headerlink" title="关键配置说明"></a>关键配置说明</h3><ol>
+<li><p><strong>端点选择</strong>：</p>
+<ul>
+<li><code>/health</code>：行业标准</li>
+<li><code>/healthz</code>：Kubernetes 常用</li>
+<li><code>/ping</code>：简单探测</li>
+</ul>
+</li>
+<li><p><strong>响应设计</strong>：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;status&quot;</span><span class="punctuation">:</span> <span class="string">&quot;ok&quot;</span><span class="punctuation">,</span>  <span class="comment">// 或 &quot;error&quot;/&quot;warning&quot;</span></span><br><span class="line">  <span class="attr">&quot;version&quot;</span><span class="punctuation">:</span> <span class="string">&quot;1.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;database&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;cache&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;uptime&quot;</span><span class="punctuation">:</span> <span class="number">12345.67</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>HTTP状态码</strong>：</p>
+<ul>
+<li>200 OK：所有系统正常</li>
+<li>503 Service Unavailable：关键服务不可用</li>
+</ul>
+</li>
+<li><p><strong>性能优化</strong>：</p>
+<ul>
+<li>添加缓存（避免频繁检查数据库）</li>
+<li>设置超时（防止健康检查阻塞）</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> BackgroundTasks</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/health&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">health_check</span>(<span class="params">background_tasks: BackgroundTasks</span>):</span><br><span class="line">    <span class="comment"># 将耗时检查放入后台</span></span><br><span class="line">    background_tasks.add_task(check_database)</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;status&quot;</span>: <span class="string">&quot;checking_in_background&quot;</span>&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="生产环境最佳实践"><a href="#生产环境最佳实践" class="headerlink" title="生产环境最佳实践"></a>生产环境最佳实践</h3><ol>
+<li><p><strong>添加安全保护</strong>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi.security <span class="keyword">import</span> APIKeyHeader</span><br><span class="line"></span><br><span class="line">API_KEY_NAME = <span class="string">&quot;X-HEALTH-KEY&quot;</span></span><br><span class="line">api_key_scheme = APIKeyHeader(name=API_KEY_NAME)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/health&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">secured_health</span>(<span class="params">key: <span class="built_in">str</span> = Depends(<span class="params">api_key_scheme</span>)</span>):</span><br><span class="line">    <span class="keyword">if</span> key != <span class="string">&quot;SECRET_KEY&quot;</span>:</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">403</span>)</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;status&quot;</span>: <span class="string">&quot;ok&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>集成 Prometheus 监控</strong>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> prometheus_fastapi_instrumentator <span class="keyword">import</span> Instrumentator</span><br><span class="line"></span><br><span class="line">Instrumentator().instrument(app).expose(app)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>添加版本信息</strong>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> importlib.metadata</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/health&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">health_check</span>():</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        <span class="string">&quot;version&quot;</span>: importlib.metadata.version(<span class="string">&quot;your-package&quot;</span>),</span><br><span class="line">        <span class="string">&quot;dependencies&quot;</span>: []</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="测试方法"><a href="#测试方法" class="headerlink" title="测试方法"></a>测试方法</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># test_health.py</span></span><br><span class="line"><span class="keyword">from</span> fastapi.testclient <span class="keyword">import</span> TestClient</span><br><span class="line"><span class="keyword">from</span> main <span class="keyword">import</span> app</span><br><span class="line"></span><br><span class="line">client = TestClient(app)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">test_health_check</span>():</span><br><span class="line">    response = client.get(<span class="string">&quot;/health&quot;</span>)</span><br><span class="line">    <span class="keyword">assert</span> response.status_code == <span class="number">200</span></span><br><span class="line">    <span class="keyword">assert</span> response.json()[<span class="string">&quot;status&quot;</span>] == <span class="string">&quot;ok&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="部署注意事项"><a href="#部署注意事项" class="headerlink" title="部署注意事项"></a>部署注意事项</h3><ol>
+<li><p>在 Kubernetes 中配置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">livenessProbe:</span></span><br><span class="line">  <span class="attr">httpGet:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">/health</span></span><br><span class="line">    <span class="attr">port:</span> <span class="number">8000</span></span><br><span class="line">  <span class="attr">initialDelaySeconds:</span> <span class="number">5</span></span><br><span class="line">  <span class="attr">periodSeconds:</span> <span class="number">10</span></span><br><span class="line"></span><br><span class="line"><span class="attr">readinessProbe:</span></span><br><span class="line">  <span class="attr">httpGet:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">/health</span></span><br><span class="line">    <span class="attr">port:</span> <span class="number">8000</span></span><br><span class="line">  <span class="attr">initialDelaySeconds:</span> <span class="number">30</span></span><br><span class="line">  <span class="attr">periodSeconds:</span> <span class="number">5</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在负载均衡器（如 Nginx）中配置：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">location</span> = /health &#123;</span><br><span class="line">    <span class="attribute">access_log</span> <span class="literal">off</span>;</span><br><span class="line">    <span class="attribute">proxy_pass</span> http://backend;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>这样实现的健康检查接口既满足基本需求，又能适应生产环境的复杂要求，同时保持代码的可维护性和扩展性。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li>场景比较简单：直接使用基础版即可</li>
+<li>场景相对复杂：可考虑使用 <code>FastAPI Router</code> 分割模块</li>
+<li>需要校验 <code>Header</code> 需，添加 <code>APIKey</code> 的保护：使用 <code>APIKeyHeader</code> 中间件保护接口</li>
+<li>为了方便运维和监控：集成 <code>Prometheus</code> 并添加版本信息等元数据</li>
+</ul>
+<hr>
+<p>每日踩一坑，生活更轻松。</p>
+<p>本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/about/">关于</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/tags/">标签</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/projects/">项目</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E5%AE%9E%E7%8E%B0%EF%BC%88%E7%AE%80%E5%8D%95%E7%89%88%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">基础实现（简单版）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AB%98%E7%BA%A7%E5%AE%9E%E7%8E%B0%EF%BC%88%E5%B8%A6%E6%A0%B8%E5%BF%83%E4%BE%9D%E8%B5%96%E6%A3%80%E6%9F%A5%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">高级实现（带核心依赖检查）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-APIRouter%EF%BC%88%E6%8E%A8%E8%8D%90%E7%94%A8%E4%BA%8E%E6%A8%A1%E5%9D%97%E5%8C%96%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">使用 APIRouter（推荐用于模块化）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E"><span class="toc-number">1.4.</span> <span class="toc-text">关键配置说明</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">1.5.</span> <span class="toc-text">生产环境最佳实践</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E6%96%B9%E6%B3%95"><span class="toc-number">1.6.</span> <span class="toc-text">测试方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%83%A8%E7%BD%B2%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">1.7.</span> <span class="toc-text">部署注意事项</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.8.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/&text=No.156.fastapi项目中Dockerfile怎么写"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/&title=No.156.fastapi项目中Dockerfile怎么写"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/&is_video=false&description=No.156.fastapi项目中Dockerfile怎么写"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.156.fastapi项目中Dockerfile怎么写&body=Check out this article: https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/&title=No.156.fastapi项目中Dockerfile怎么写"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/&title=No.156.fastapi项目中Dockerfile怎么写"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/&title=No.156.fastapi项目中Dockerfile怎么写"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/&title=No.156.fastapi项目中Dockerfile怎么写"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/&name=No.156.fastapi项目中Dockerfile怎么写&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/08/18/No-156-fastapi%E4%B8%AD%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%8E%A5%E5%8F%A3%E6%80%8E%E4%B9%88%E5%86%99/&t=No.156.fastapi项目中Dockerfile怎么写"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2025
+    Hope
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
