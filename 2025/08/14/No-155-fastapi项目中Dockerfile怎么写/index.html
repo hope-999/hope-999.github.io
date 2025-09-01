@@ -8,13 +8,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
     <meta name="description" content="导读fastapi 项目代码写完了，怎么打包部署？ 部署到 k8s 集群中，Dockerfile 怎么写呢？ 以下是针对 FastAPI 项目的 生产级 Dockerfile 示例，包含性能优化、安全实践和 Kubernetes 适配建议，支持异步请求和高并发场景： 优化版 Dockerfile（支持 ASGI + 多阶段构建）12345678910111213141516171819202122">
 <meta property="og:type" content="article">
-<meta property="og:title" content="No.155.fastapi项目中Dockerfile怎么写">
+<meta property="og:title" content="No.155-fastapi项目中Dockerfile怎么写">
 <meta property="og:url" content="https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/index.html">
 <meta property="og:site_name" content="Hope 的博客">
 <meta property="og:description" content="导读fastapi 项目代码写完了，怎么打包部署？ 部署到 k8s 集群中，Dockerfile 怎么写呢？ 以下是针对 FastAPI 项目的 生产级 Dockerfile 示例，包含性能优化、安全实践和 Kubernetes 适配建议，支持异步请求和高并发场景： 优化版 Dockerfile（支持 ASGI + 多阶段构建）12345678910111213141516171819202122">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-08-14T03:13:24.000Z">
-<meta property="article:modified_time" content="2025-08-20T09:56:20.830Z">
+<meta property="article:modified_time" content="2025-08-25T08:48:18.342Z">
 <meta property="article:author" content="Hope">
 <meta property="article:tag" content="fastapi">
 <meta name="twitter:card" content="summary">
@@ -37,7 +37,7 @@
       
     
     <!-- title -->
-    <title>No.155.fastapi项目中Dockerfile怎么写</title>
+    <title>No.155-fastapi项目中Dockerfile怎么写</title>
     <!-- async scripts -->
     <!-- Google Analytics -->
 
@@ -103,16 +103,16 @@
     <div id="share" style="display: none">
       <ul>
   <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&text=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&is_video=false&description=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=No.155.fastapi项目中Dockerfile怎么写&body=Check out this article: https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&name=No.155.fastapi项目中Dockerfile怎么写&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&t=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&text=No.155-fastapi项目中Dockerfile怎么写"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155-fastapi项目中Dockerfile怎么写"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&is_video=false&description=No.155-fastapi项目中Dockerfile怎么写"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.155-fastapi项目中Dockerfile怎么写&body=Check out this article: https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155-fastapi项目中Dockerfile怎么写"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155-fastapi项目中Dockerfile怎么写"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155-fastapi项目中Dockerfile怎么写"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155-fastapi项目中Dockerfile怎么写"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&name=No.155-fastapi项目中Dockerfile怎么写&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&t=No.155-fastapi项目中Dockerfile怎么写"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -132,7 +132,7 @@
   <header>
     
     <h1 class="posttitle p-name" itemprop="name headline">
-        No.155.fastapi项目中Dockerfile怎么写
+        No.155-fastapi项目中Dockerfile怎么写
     </h1>
 
 
@@ -146,7 +146,7 @@
       
         <time datetime="2025-08-14T03:13:24.000Z" class="dt-published" itemprop="datePublished">2025-08-14</time>
         
-        (Updated: <time datetime="2025-08-20T09:56:20.830Z" class="dt-updated" itemprop="dateModified">2025-08-20</time>)
+        (Updated: <time datetime="2025-08-25T08:48:18.342Z" class="dt-updated" itemprop="dateModified">2025-08-25</time>)
         
       
     </div>
@@ -291,16 +291,16 @@
     <div id="share-footer" style="display: none">
       <ul>
   <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&text=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&is_video=false&description=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=No.155.fastapi项目中Dockerfile怎么写&body=Check out this article: https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&name=No.155.fastapi项目中Dockerfile怎么写&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&t=No.155.fastapi项目中Dockerfile怎么写"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&text=No.155-fastapi项目中Dockerfile怎么写"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155-fastapi项目中Dockerfile怎么写"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&is_video=false&description=No.155-fastapi项目中Dockerfile怎么写"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.155-fastapi项目中Dockerfile怎么写&body=Check out this article: https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155-fastapi项目中Dockerfile怎么写"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155-fastapi项目中Dockerfile怎么写"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155-fastapi项目中Dockerfile怎么写"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&title=No.155-fastapi项目中Dockerfile怎么写"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&name=No.155-fastapi项目中Dockerfile怎么写&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/08/14/No-155-fastapi%E9%A1%B9%E7%9B%AE%E4%B8%ADDockerfile%E6%80%8E%E4%B9%88%E5%86%99/&t=No.155-fastapi项目中Dockerfile怎么写"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
