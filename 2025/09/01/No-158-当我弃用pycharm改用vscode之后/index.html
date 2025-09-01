@@ -6,13 +6,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta property="og:type" content="article">
+    <meta name="description" content="导读作为一名Python开发者，我使用PyCharm已经超过五年了。它无疑是一款强大的IDE，智能提示、调试功能、项目导航都无可挑剔。但随着时间的推移，一些不适开始浮现： 内存占用惊人：打开大型项目时，PyCharm动不动就吃掉4GB+内存，我的16GB笔记本开始捉襟见肘。尤其是使用AI 插件后，内存占用更是飙升。代码补全显得很卡顿，严重影响编码体验。而且我 256GB 的 SSD 硬盘也吃不消了">
+<meta property="og:type" content="article">
 <meta property="og:title" content="No.158-当我弃用pycharm改用vscode之后">
 <meta property="og:url" content="https://hope-999.github.io/2025/09/01/No-158-%E5%BD%93%E6%88%91%E5%BC%83%E7%94%A8pycharm%E6%94%B9%E7%94%A8vscode%E4%B9%8B%E5%90%8E/index.html">
 <meta property="og:site_name" content="Hope 的博客">
+<meta property="og:description" content="导读作为一名Python开发者，我使用PyCharm已经超过五年了。它无疑是一款强大的IDE，智能提示、调试功能、项目导航都无可挑剔。但随着时间的推移，一些不适开始浮现： 内存占用惊人：打开大型项目时，PyCharm动不动就吃掉4GB+内存，我的16GB笔记本开始捉襟见肘。尤其是使用AI 插件后，内存占用更是飙升。代码补全显得很卡顿，严重影响编码体验。而且我 256GB 的 SSD 硬盘也吃不消了">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-09-01T07:54:31.000Z">
-<meta property="article:modified_time" content="2025-09-01T07:54:31.513Z">
+<meta property="article:modified_time" content="2025-09-01T08:37:11.230Z">
 <meta property="article:author" content="Hope">
 <meta name="twitter:card" content="summary">
     
@@ -113,6 +115,10 @@
     </div>
     
     
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B0%9D%E8%AF%95%E8%BD%AC%E5%8F%98%EF%BC%9A%E5%88%9D%E4%BD%93%E9%AA%8CVSCode"><span class="toc-number">1.1.</span> <span class="toc-text">尝试转变：初体验VSCode</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%83%8A%E5%96%9C%E5%8F%91%E7%8E%B0%EF%BC%9AVSCode%E7%9A%84%E7%8B%AC%E7%89%B9%E4%BC%98%E5%8A%BF"><span class="toc-number">1.2.</span> <span class="toc-text">惊喜发现：VSCode的独特优势</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%82%E5%BA%94%E6%8C%91%E6%88%98%EF%BC%9A%E9%9C%80%E8%A6%81%E5%85%8B%E6%9C%8D%E7%9A%84%E9%9A%9C%E7%A2%8D"><span class="toc-number">2.</span> <span class="toc-text">适应挑战：需要克服的障碍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%88%91%E7%9A%84VSCode-Python%E5%BC%80%E5%8F%91%E9%85%8D%E7%BD%AE"><span class="toc-number">3.</span> <span class="toc-text">我的VSCode Python开发配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E8%AE%BA%EF%BC%9A%E9%80%82%E5%90%88%E7%9A%84%E6%89%8D%E6%98%AF%E6%9C%80%E5%A5%BD%E7%9A%84"><span class="toc-number">4.</span> <span class="toc-text">结论：适合的才是最好的</span></a></li></ol>
+      </div>
+    
   </span>
 </div>
 
@@ -137,7 +143,7 @@
       
         <time datetime="2025-09-01T07:54:31.000Z" class="dt-published" itemprop="datePublished">2025-09-01</time>
         
-        (Updated: <time datetime="2025-09-01T07:54:31.513Z" class="dt-updated" itemprop="dateModified">2025-09-01</time>)
+        (Updated: <time datetime="2025-09-01T08:37:11.230Z" class="dt-updated" itemprop="dateModified">2025-09-01</time>)
         
       
     </div>
@@ -152,7 +158,67 @@
   
 
   <div class="content e-content" itemprop="articleBody">
-    
+    <h2 id="导读"><a href="#导读" class="headerlink" title="导读"></a>导读</h2><p>作为一名<code>Python</code>开发者，我使用<code>PyCharm</code>已经超过五年了。它无疑是一款强大的IDE，智能提示、调试功能、项目导航都无可挑剔。但随着时间的推移，一些不适开始浮现：</p>
+<p><strong>内存占用惊人</strong>：打开大型项目时，PyCharm动不动就吃掉4GB+内存，我的16GB笔记本开始捉襟见肘。尤其是使用AI 插件后，内存占用更是飙升。代码补全显得很卡顿，严重影响编码体验。而且我 <code>256GB</code> 的 <code>SSD</code> 硬盘也吃不消了。</p>
+<p><strong>启动速度慢</strong>：从点击图标到真正开始编码，等待时间比较久，打开 Pycharm，一般要去个卫生间再回来开始工作会比较顺畅。</p>
+<p><strong>过于“重量级”</strong>：有时候我只是想快速编辑一个小脚本，却需要启动整个IDE。单个文件编辑，其实 <code>sublime text 3</code> 就足够了。</p>
+<h3 id="尝试转变：初体验VSCode"><a href="#尝试转变：初体验VSCode" class="headerlink" title="尝试转变：初体验VSCode"></a>尝试转变：初体验VSCode</h3><p>一开始我是怀疑的——一个“编辑器”真能替代“IDE”吗？</p>
+<p>安装必要的Python扩展后，我惊讶地发现VSCode提供了绝大多数我需要的功能：</p>
+<ul>
+<li><strong>智能提示</strong>：通过Pylance扩展，代码补全几乎不输PyCharm</li>
+<li><strong>调试支持</strong>：完整的断点调试、变量监视功能</li>
+<li><strong>虚拟环境支持</strong>：轻松切换不同Python解释器</li>
+<li><strong>Git集成</strong>：源代码管理直观易用</li>
+</ul>
+<p>绝了绝了。</p>
+<p>我也是尝试了很多次，切换到VSCode后，感觉不顺再切换回来。</p>
+<p>这样尝试了 7～8 次，我终于决定彻底抛弃PyCharm，拥抱VSCode。</p>
+<h3 id="惊喜发现：VSCode的独特优势"><a href="#惊喜发现：VSCode的独特优势" class="headerlink" title="惊喜发现：VSCode的独特优势"></a>惊喜发现：VSCode的独特优势</h3><p>使用几周后，我发现了VSCode许多令人欣喜的特点：</p>
+<p><strong>闪电般的启动速度</strong>：几乎瞬间启动，随时记录灵感不再是问题</p>
+<p><strong>内存友好</strong>：通常内存占用只有PyCharm的1&#x2F;3到1&#x2F;2</p>
+<p><strong>无缝多语言支持</strong>：前端项目常常需要同时处理Python、JavaScript、HTML，VSCode天生就是多语言环境</p>
+<p><strong>扩展生态丰富</strong>：几乎任何需求都能找到对应的扩展，且安装管理极其简单</p>
+<p><strong>高度可定制</strong>：通过settings.json可以精细调整每一个细节</p>
+<h2 id="适应挑战：需要克服的障碍"><a href="#适应挑战：需要克服的障碍" class="headerlink" title="适应挑战：需要克服的障碍"></a>适应挑战：需要克服的障碍</h2><p>转变并非一帆风顺，确实有一些需要适应的地方：</p>
+<p><strong>项目管理方式不同</strong>：VSCode以文件夹为基础而不是“项目”概念，需要时间适应</p>
+<p><strong>部分高级功能需要配置</strong>：一些PyCharm开箱即用的功能，在VSCode中需要额外设置</p>
+<p><strong>重构工具略逊一筹</strong>：虽然可用，但PyCharm的重构工具确实更强大</p>
+<h2 id="我的VSCode-Python开发配置"><a href="#我的VSCode-Python开发配置" class="headerlink" title="我的VSCode Python开发配置"></a>我的VSCode Python开发配置</h2><p>经过不断调整，这是我的黄金配置：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;python.linting.pylintEnabled&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;python.linting.enabled&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;python.formatting.provider&quot;</span><span class="punctuation">:</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;editor.formatOnSave&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;python.linting.pylintArgs&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;--load-plugins&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pylint_django&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;python.linting.flake8Enabled&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;[python]&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;editor.defaultFormatter&quot;</span><span class="punctuation">:</span> <span class="string">&quot;ms-python.python&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;editor.tabSize&quot;</span><span class="punctuation">:</span> <span class="number">4</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>必备扩展</strong>：</p>
+<ul>
+<li>Python (Microsoft)</li>
+<li>Pylance</li>
+<li>Jupyter</li>
+<li>Python Docstring Generator</li>
+<li>Black Formatter</li>
+<li>MagicPython</li>
+<li>Python Debug (Microsoft)</li>
+</ul>
+<h2 id="结论：适合的才是最好的"><a href="#结论：适合的才是最好的" class="headerlink" title="结论：适合的才是最好的"></a>结论：适合的才是最好的</h2><p>经过几个月的使用，我确定VSCode已经满足了我95%的Python开发需求。剩下的5%主要是超大型项目的重构和深度数据库集成，这些场景下我仍然会打开PyCharm。</p>
+<p><strong>适合VSCode的场景</strong>：</p>
+<ul>
+<li>Web开发（尤其是全栈开发）</li>
+<li>数据科学和脚本编写</li>
+<li>快速编辑和轻量级项目</li>
+<li>需要频繁切换语言的项目</li>
+</ul>
+<p><strong>可能仍需PyCharm的场景</strong>：</p>
+<ul>
+<li>超大型项目导航和重构</li>
+<li>复杂的数据库集成开发</li>
+<li>需要IDE级深度集成的企业环境</li>
+</ul>
+<p>转变编辑器不是非此即彼的选择，而是找到最适合自己工作流程的工具。对我来说，VSCode提供了更好的平衡点：既强大又灵活，既功能丰富又保持轻量。</p>
+<p>也许有一天我会再次改变我的工具选择，但至少现在，VSCode让我享受编码的乐趣变得更加简单直接。</p>
+<p>安利一波：<code>VSCode</code> 的搜索功能是真的好用。</p>
+<hr>
+<p><strong>你有类似的工具转变经历吗？欢迎在评论区分享你的故事！</strong></p>
+<hr>
+<p>每日踩一坑，生活更轻松。</p>
+<p>本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。</p>
+
   </div>
 </article>
 
@@ -182,6 +248,10 @@
 
     
     
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B0%9D%E8%AF%95%E8%BD%AC%E5%8F%98%EF%BC%9A%E5%88%9D%E4%BD%93%E9%AA%8CVSCode"><span class="toc-number">1.1.</span> <span class="toc-text">尝试转变：初体验VSCode</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%83%8A%E5%96%9C%E5%8F%91%E7%8E%B0%EF%BC%9AVSCode%E7%9A%84%E7%8B%AC%E7%89%B9%E4%BC%98%E5%8A%BF"><span class="toc-number">1.2.</span> <span class="toc-text">惊喜发现：VSCode的独特优势</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%82%E5%BA%94%E6%8C%91%E6%88%98%EF%BC%9A%E9%9C%80%E8%A6%81%E5%85%8B%E6%9C%8D%E7%9A%84%E9%9A%9C%E7%A2%8D"><span class="toc-number">2.</span> <span class="toc-text">适应挑战：需要克服的障碍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%88%91%E7%9A%84VSCode-Python%E5%BC%80%E5%8F%91%E9%85%8D%E7%BD%AE"><span class="toc-number">3.</span> <span class="toc-text">我的VSCode Python开发配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E8%AE%BA%EF%BC%9A%E9%80%82%E5%90%88%E7%9A%84%E6%89%8D%E6%98%AF%E6%9C%80%E5%A5%BD%E7%9A%84"><span class="toc-number">4.</span> <span class="toc-text">结论：适合的才是最好的</span></a></li></ol>
+      </div>
+    
 
     <div id="share-footer" style="display: none">
       <ul>
@@ -202,6 +272,8 @@
 
     <div id="actions-footer">
         <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
         
         <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
         <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
