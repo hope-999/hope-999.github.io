@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="导读在项目排查问题的过程中，链路跟踪是一个很重要的手段，通过链路跟踪，可以快速定位问题，从而快速解决问题。 但是当没有链路跟踪的时候，我们也可以通过请求唯一标识，来追踪请求的链路，从而定位问题。 至少在本项目中能一次性全部搜索出来当前请求的日志，从而定位问题。 fastapi 中请求唯一标识的使用添加一个中间件，将请求的唯一标识添加到请求头中。 12345678910111213141516171">
+<meta property="og:type" content="article">
+<meta property="og:title" content="No.160-fastapi中请求唯一标识的使用">
+<meta property="og:url" content="https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:site_name" content="Hope 的博客">
+<meta property="og:description" content="导读在项目排查问题的过程中，链路跟踪是一个很重要的手段，通过链路跟踪，可以快速定位问题，从而快速解决问题。 但是当没有链路跟踪的时候，我们也可以通过请求唯一标识，来追踪请求的链路，从而定位问题。 至少在本项目中能一次性全部搜索出来当前请求的日志，从而定位问题。 fastapi 中请求唯一标识的使用添加一个中间件，将请求的唯一标识添加到请求头中。 12345678910111213141516171">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-09-25T17:09:15.000Z">
+<meta property="article:modified_time" content="2025-09-25T17:25:27.592Z">
+<meta property="article:author" content="Hope">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>No.160-fastapi中请求唯一标识的使用</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2025/09/15/No-159-fastapi%E4%B8%AD%E6%95%B0%E6%8D%AE%E5%BA%93%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E7%9A%84%E9%85%8D%E7%BD%AE%E7%9A%84%E4%BD%BF%E7%94%A8/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/&text=No.160-fastapi中请求唯一标识的使用"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.160-fastapi中请求唯一标识的使用"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/&is_video=false&description=No.160-fastapi中请求唯一标识的使用"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.160-fastapi中请求唯一标识的使用&body=Check out this article: https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.160-fastapi中请求唯一标识的使用"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.160-fastapi中请求唯一标识的使用"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.160-fastapi中请求唯一标识的使用"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.160-fastapi中请求唯一标识的使用"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/&name=No.160-fastapi中请求唯一标识的使用&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/&t=No.160-fastapi中请求唯一标识的使用"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#fastapi-%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">fastapi 中请求唯一标识的使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BB%E7%A8%8B%E5%BA%8F%E4%B8%AD%E6%B7%BB%E5%8A%A0%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-number">3.</span> <span class="toc-text">主程序中添加中间件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%97%A5%E5%BF%97%E4%B8%AD%E6%B7%BB%E5%8A%A0%E8%AF%B7%E6%B1%82ID"><span class="toc-number">4.</span> <span class="toc-text">日志中添加请求ID</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E6%97%A5%E5%BF%97%E6%A0%BC%E5%BC%8F"><span class="toc-number">5.</span> <span class="toc-text">设置日志格式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0%E6%97%A5%E5%BF%97%E5%A4%84%E7%90%86%E5%99%A8"><span class="toc-number">6.</span> <span class="toc-text">添加日志处理器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8"><span class="toc-number">7.</span> <span class="toc-text">使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">总结</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        No.160-fastapi中请求唯一标识的使用
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Hope</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-09-25T17:09:15.000Z" class="dt-published" itemprop="datePublished">2025-09-26</time>
+        
+        (Updated: <time datetime="2025-09-25T17:25:27.592Z" class="dt-updated" itemprop="dateModified">2025-09-26</time>)
+        
+      
+    </div>
+
+
+      
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="导读"><a href="#导读" class="headerlink" title="导读"></a>导读</h2><p>在项目排查问题的过程中，链路跟踪是一个很重要的手段，通过链路跟踪，可以快速定位问题，从而快速解决问题。</p>
+<p>但是当没有链路跟踪的时候，我们也可以通过请求唯一标识，来追踪请求的链路，从而定位问题。</p>
+<p>至少在本项目中能一次性全部搜索出来当前请求的日志，从而定位问题。</p>
+<h2 id="fastapi-中请求唯一标识的使用"><a href="#fastapi-中请求唯一标识的使用" class="headerlink" title="fastapi 中请求唯一标识的使用"></a>fastapi 中请求唯一标识的使用</h2><p>添加一个中间件，将请求的唯一标识添加到请求头中。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> logging</span><br><span class="line"><span class="keyword">from</span> starlette.middleware.base <span class="keyword">import</span> BaseHTTPMiddleware</span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> Request</span><br><span class="line"><span class="keyword">import</span> uuid</span><br><span class="line"><span class="keyword">from</span> app.core.logger <span class="keyword">import</span> logger</span><br><span class="line"><span class="keyword">from</span> app.core.logger <span class="keyword">import</span> request_id_ctx</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">RequestIDMiddleware</span>(<span class="title class_ inherited__">BaseHTTPMiddleware</span>):</span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">dispatch</span>(<span class="params">self, request: Request, call_next</span>):</span><br><span class="line">        <span class="comment"># 获取或生成请求ID</span></span><br><span class="line">        request_id = request.headers.get(<span class="string">&#x27;X-Request-ID&#x27;</span>) <span class="keyword">or</span> <span class="built_in">str</span>(uuid.uuid4())</span><br><span class="line">        request.state.request_id = request_id</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 设置上下文变量</span></span><br><span class="line">        token = request_id_ctx.<span class="built_in">set</span>(request_id)</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            logger.info(<span class="string">f&quot;Request started: <span class="subst">&#123;request.method&#125;</span> <span class="subst">&#123;request.url&#125;</span>&quot;</span>)</span><br><span class="line">            response = <span class="keyword">await</span> call_next(request)</span><br><span class="line">            response.headers[<span class="string">&#x27;X-Request-ID&#x27;</span>] = request_id</span><br><span class="line">            logger.info(<span class="string">f&quot;Request completed: <span class="subst">&#123;request.method&#125;</span> <span class="subst">&#123;request.url&#125;</span> <span class="subst">&#123;response.status_code&#125;</span>&quot;</span>)</span><br><span class="line">            <span class="keyword">return</span> response</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            logger.error(<span class="string">f&quot;Request failed: <span class="subst">&#123;request.method&#125;</span> <span class="subst">&#123;request.url&#125;</span> <span class="subst">&#123;<span class="built_in">str</span>(e)&#125;</span>&quot;</span>)</span><br><span class="line">            <span class="keyword">raise</span></span><br><span class="line">        <span class="keyword">finally</span>:</span><br><span class="line">            request_id_ctx.reset(token)</span><br></pre></td></tr></table></figure>
+
+<h2 id="主程序中添加中间件"><a href="#主程序中添加中间件" class="headerlink" title="主程序中添加中间件"></a>主程序中添加中间件</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">app = FastAPI(</span><br><span class="line">    title=settings.PROJECT_NAME,</span><br><span class="line">    openapi_url=<span class="string">f&quot;/openapi.json&quot;</span>,</span><br><span class="line">    generate_unique_id_function=custom_generate_unique_id,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 请求ID中间件</span></span><br><span class="line">app.add_middleware(RequestIDMiddleware)</span><br></pre></td></tr></table></figure>
+
+<h2 id="日志中添加请求ID"><a href="#日志中添加请求ID" class="headerlink" title="日志中添加请求ID"></a>日志中添加请求ID</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> logging</span><br><span class="line"><span class="keyword">from</span> concurrent_log_handler <span class="keyword">import</span> ConcurrentRotatingFileHandler</span><br><span class="line"><span class="keyword">from</span> app.core.config <span class="keyword">import</span> settings</span><br><span class="line"><span class="keyword">from</span> contextvars <span class="keyword">import</span> ContextVar</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建上下文变量存储请求ID</span></span><br><span class="line">request_id_ctx = ContextVar(<span class="string">&quot;request_id&quot;</span>, default=<span class="literal">None</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">RequestIDFilter</span>(logging.Filter):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">filter</span>(<span class="params">self, record</span>):</span><br><span class="line">        <span class="comment"># 从当前请求上下文中获取请求ID</span></span><br><span class="line">        record.request_id = request_id_ctx.get() <span class="keyword">or</span> <span class="string">&quot;no-request-id&quot;</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="设置日志格式"><a href="#设置日志格式" class="headerlink" title="设置日志格式"></a>设置日志格式</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 设置日志的格式，可以根据需要修改</span></span><br><span class="line">formatter = logging.Formatter(</span><br><span class="line">    <span class="string">&quot;%(asctime)s &quot;</span></span><br><span class="line">    <span class="string">&quot;%(filename)s:%(lineno)d &quot;</span></span><br><span class="line">    <span class="string">&quot;%(processName)s &quot;</span></span><br><span class="line">    <span class="string">&quot;%(threadName)s &quot;</span></span><br><span class="line">    <span class="string">&quot;%(levelname)s &quot;</span></span><br><span class="line">    <span class="string">&quot;%(request_id)s &quot;</span></span><br><span class="line">    <span class="string">&quot;%(message)s&quot;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h2 id="添加日志处理器"><a href="#添加日志处理器" class="headerlink" title="添加日志处理器"></a>添加日志处理器</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">logger.addFilter(RequestIDFilter())</span><br></pre></td></tr></table></figure>
+
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">logger.info(<span class="string">&quot;This is an info message with request ID&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>在日志中可以看到请求ID:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">2025-09-19 18:33:00,354 middleware.py:22 MainProcess Thread-1 (run_blocking_portal) INFO 870b229f-1546-4147-873a-f3763b548db7 Request completed: POST http://testserver/coding_callback_manager/issue_status_change_first/1.0.0 500</span><br><span class="line">2025-09-19 18:33:54,885 middleware.py:19 MainProcess Thread-1 (run_blocking_portal) INFO f8cf2dfc-79ff-43dc-a384-f4a51c3f52c0 Request started: POST http://testserver/coding_callback_manager/issue_status_change_first/1.0.0</span><br></pre></td></tr></table></figure>
+
+<p>在返回请求头中，也可以看到请求ID:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Content-Type: application/json</span><br><span class="line">Content-Length: 66</span><br><span class="line">Connection: close</span><br><span class="line">Server: openresty</span><br><span class="line">Date: Thu, 25 Sep 2025 17:11:44 GMT</span><br><span class="line">X-Proxy-By: Gin Reverse Proxy</span><br><span class="line">X-Request-Id: 3ab700b0-b818-4d22-8e91-671ea46317e2</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>通过请求唯一标识，可以快速定位请求的链路，从而定位问题。</li>
+<li>通过请求唯一标识能快速搜索出来当前请求的日志。</li>
+<li>可以从返回请求头中拿到请求ID，再去搜索日志。</li>
+<li>可以通过请求唯一 id，查询到请求开始时间和结束时间，分析请求耗时。</li>
+<li>可以通过逐步打印日志，来分析请求的流程，分析性能瓶颈。</li>
+</ul>
+<hr>
+<p>每日踩一坑，生活更轻松。</p>
+<p>本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/about/">关于</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/tags/">标签</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/projects/">项目</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#fastapi-%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">fastapi 中请求唯一标识的使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BB%E7%A8%8B%E5%BA%8F%E4%B8%AD%E6%B7%BB%E5%8A%A0%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-number">3.</span> <span class="toc-text">主程序中添加中间件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%97%A5%E5%BF%97%E4%B8%AD%E6%B7%BB%E5%8A%A0%E8%AF%B7%E6%B1%82ID"><span class="toc-number">4.</span> <span class="toc-text">日志中添加请求ID</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E6%97%A5%E5%BF%97%E6%A0%BC%E5%BC%8F"><span class="toc-number">5.</span> <span class="toc-text">设置日志格式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0%E6%97%A5%E5%BF%97%E5%A4%84%E7%90%86%E5%99%A8"><span class="toc-number">6.</span> <span class="toc-text">添加日志处理器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8"><span class="toc-number">7.</span> <span class="toc-text">使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">总结</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/&text=No.160-fastapi中请求唯一标识的使用"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.160-fastapi中请求唯一标识的使用"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/&is_video=false&description=No.160-fastapi中请求唯一标识的使用"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.160-fastapi中请求唯一标识的使用&body=Check out this article: https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.160-fastapi中请求唯一标识的使用"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.160-fastapi中请求唯一标识的使用"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.160-fastapi中请求唯一标识的使用"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.160-fastapi中请求唯一标识的使用"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/&name=No.160-fastapi中请求唯一标识的使用&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/&t=No.160-fastapi中请求唯一标识的使用"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2025
+    Hope
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
