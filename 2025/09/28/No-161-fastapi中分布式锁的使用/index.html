@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="🚀 FastAPI 中分布式锁的使用：从一次“库存超卖”说起去年双 11，我接到一个临时需求：某个电商项目要在 FastAPI 微服务中接入一个限时秒杀活动。听起来很简单：下单时，先扣减库存，再生成订单。 但活动刚开始 5 分钟，测试环境里就出现了库存被超卖的问题。 我一脸问号：  “不是加了数据库行级锁吗？怎么还会超卖？”  后来排查发现：  FastAPI 部署在 多实例 + 多进程 模式下">
+<meta property="og:type" content="article">
+<meta property="og:title" content="No.161-fastapi中分布式锁的使用">
+<meta property="og:url" content="https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:site_name" content="Hope 的博客">
+<meta property="og:description" content="🚀 FastAPI 中分布式锁的使用：从一次“库存超卖”说起去年双 11，我接到一个临时需求：某个电商项目要在 FastAPI 微服务中接入一个限时秒杀活动。听起来很简单：下单时，先扣减库存，再生成订单。 但活动刚开始 5 分钟，测试环境里就出现了库存被超卖的问题。 我一脸问号：  “不是加了数据库行级锁吗？怎么还会超卖？”  后来排查发现：  FastAPI 部署在 多实例 + 多进程 模式下">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-09-28T07:50:32.000Z">
+<meta property="article:modified_time" content="2025-09-28T08:47:24.932Z">
+<meta property="article:author" content="Hope">
+<meta property="article:tag" content="fastapi">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>No.161-fastapi中分布式锁的使用</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/&text=No.161-fastapi中分布式锁的使用"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.161-fastapi中分布式锁的使用"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/&is_video=false&description=No.161-fastapi中分布式锁的使用"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.161-fastapi中分布式锁的使用&body=Check out this article: https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.161-fastapi中分布式锁的使用"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.161-fastapi中分布式锁的使用"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.161-fastapi中分布式锁的使用"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.161-fastapi中分布式锁的使用"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/&name=No.161-fastapi中分布式锁的使用&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/&t=No.161-fastapi中分布式锁的使用"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%9A%80-FastAPI-%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%9A%E4%BB%8E%E4%B8%80%E6%AC%A1%E2%80%9C%E5%BA%93%E5%AD%98%E8%B6%85%E5%8D%96%E2%80%9D%E8%AF%B4%E8%B5%B7"><span class="toc-number">1.</span> <span class="toc-text">🚀 FastAPI 中分布式锁的使用：从一次“库存超卖”说起</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%91-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">🔑 为什么要分布式锁？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A9-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%8E%9F%E7%90%86"><span class="toc-number">3.</span> <span class="toc-text">🧩 分布式锁的原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9A%A1-%E5%9C%A8-FastAPI-%E4%B8%AD%E7%9A%84%E5%AE%9E%E6%88%98%E7%A4%BA%E4%BE%8B"><span class="toc-number">4.</span> <span class="toc-text">⚡ 在 FastAPI 中的实战示例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%AA-%E5%A4%9A%E5%89%AF%E6%9C%AC-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E8%84%9A%E6%9C%AC%E5%9C%BA%E6%99%AF"><span class="toc-number">5.</span> <span class="toc-text">🧪 多副本 + 多线程脚本场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9A%A0%EF%B8%8F-%E8%B8%A9%E5%9D%91%E4%B8%8E%E4%BC%98%E5%8C%96"><span class="toc-number">6.</span> <span class="toc-text">⚠️ 踩坑与优化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%8F%81-%E6%80%BB%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">🏁 总结</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        No.161-fastapi中分布式锁的使用
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Hope</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-09-28T07:50:32.000Z" class="dt-published" itemprop="datePublished">2025-09-28</time>
+        
+        (Updated: <time datetime="2025-09-28T08:47:24.932Z" class="dt-updated" itemprop="dateModified">2025-09-28</time>)
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/fastapi/" rel="tag">fastapi</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="🚀-FastAPI-中分布式锁的使用：从一次“库存超卖”说起"><a href="#🚀-FastAPI-中分布式锁的使用：从一次“库存超卖”说起" class="headerlink" title="🚀 FastAPI 中分布式锁的使用：从一次“库存超卖”说起"></a>🚀 FastAPI 中分布式锁的使用：从一次“库存超卖”说起</h2><p>去年双 11，我接到一个临时需求：某个电商项目要在 <strong>FastAPI</strong> 微服务中接入一个限时秒杀活动。听起来很简单：下单时，先扣减库存，再生成订单。</p>
+<p>但活动刚开始 5 分钟，测试环境里就出现了<strong>库存被超卖</strong>的问题。</p>
+<p>我一脸问号：</p>
+<blockquote>
+<p>“不是加了数据库行级锁吗？怎么还会超卖？”</p>
+</blockquote>
+<p>后来排查发现：</p>
+<ul>
+<li>FastAPI 部署在 <strong>多实例 + 多进程</strong> 模式下。</li>
+<li>请求并发打到不同节点，单机锁根本没法控制全局并发。</li>
+<li>导致库存还没刷新，另一个节点也以为还能买。</li>
+</ul>
+<p>这时，我们才意识到：<br>👉 <strong>需要一把分布式锁</strong>。</p>
+<hr>
+<h2 id="🔑-为什么要分布式锁？"><a href="#🔑-为什么要分布式锁？" class="headerlink" title="🔑 为什么要分布式锁？"></a>🔑 为什么要分布式锁？</h2><p>常见场景：</p>
+<ul>
+<li><strong>秒杀&#x2F;抢购</strong>：防止库存被多减</li>
+<li><strong>任务调度</strong>：避免多个副本同时跑同一个任务</li>
+<li><strong>接口幂等</strong>：防止重复请求造成数据重复写入</li>
+</ul>
+<p>在 <strong>单机环境</strong> 下，<code>threading.Lock</code> 就够了。<br>但在 <strong>分布式环境</strong>（Kubernetes &#x2F; 多副本部署）下，必须要靠 Redis 这种 <strong>中心化存储</strong> 来协调。</p>
+<hr>
+<h2 id="🧩-分布式锁的原理"><a href="#🧩-分布式锁的原理" class="headerlink" title="🧩 分布式锁的原理"></a>🧩 分布式锁的原理</h2><p>分布式锁的基本原理很简单：</p>
+<ol>
+<li><strong>加锁</strong>：尝试在 Redis 设置一个 Key（只允许第一个写入成功）。</li>
+<li><strong>执行业务逻辑</strong>：执行库存扣减、报表生成等。</li>
+<li><strong>解锁</strong>：执行完后删除 Key，但要注意<strong>不能误删别人的锁</strong>。</li>
+</ol>
+<p>Redis 的 <code>SETNX</code> + 过期时间（<code>EXPIRE</code>）就能实现这一过程。</p>
+<hr>
+<h2 id="⚡-在-FastAPI-中的实战示例"><a href="#⚡-在-FastAPI-中的实战示例" class="headerlink" title="⚡ 在 FastAPI 中的实战示例"></a>⚡ 在 FastAPI 中的实战示例</h2><p>下面分享一个真实的业务改造案例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> contextlib <span class="keyword">import</span> contextmanager</span><br><span class="line"><span class="keyword">from</span> redis <span class="keyword">import</span> Redis</span><br><span class="line"><span class="keyword">from</span> redis.lock <span class="keyword">import</span> Lock</span><br><span class="line"><span class="keyword">import</span> logging</span><br><span class="line"></span><br><span class="line">logger = logging.getLogger(__name__)</span><br><span class="line">redis_client = Redis(host=<span class="string">&quot;127.0.0.1&quot;</span>, port=<span class="number">6379</span>, decode_responses=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">@contextmanager</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_redis_lock</span>(<span class="params">lock_key: <span class="built_in">str</span>, timeout: <span class="built_in">int</span> = <span class="number">10</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    获取 Redis 分布式锁（上下文管理器方式）</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        lock_key (str): 锁的 key</span></span><br><span class="line"><span class="string">        timeout (int, optional): 过期时间，秒. Defaults to 10.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    lock = Lock(</span><br><span class="line">        redis=redis_client,</span><br><span class="line">        name=lock_key,</span><br><span class="line">        timeout=timeout,</span><br><span class="line">        blocking_timeout=timeout + <span class="number">5</span>,</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    acquired = <span class="literal">False</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        acquired = lock.acquire(blocking=<span class="literal">True</span>)</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> acquired:</span><br><span class="line">            <span class="keyword">raise</span> Exception(<span class="string">f&quot;[get_redis_lock] Failed to acquire lock: <span class="subst">&#123;lock_key&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">yield</span> lock</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        <span class="keyword">if</span> acquired:</span><br><span class="line">            <span class="keyword">try</span>:</span><br><span class="line">                lock.release()</span><br><span class="line">                logger.info(<span class="string">f&quot;[get_redis_lock] Released lock: <span class="subst">&#123;lock_key&#125;</span>&quot;</span>)</span><br><span class="line">            <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">                logger.warning(<span class="string">f&quot;Lock release error: <span class="subst">&#123;e&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>调用时非常优雅：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.post(<span class="params"><span class="string">&quot;/seckill&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">seckill</span>():</span><br><span class="line">    <span class="keyword">with</span> get_redis_lock(<span class="string">&quot;lock:inventory&quot;</span>, timeout=<span class="number">5</span>):</span><br><span class="line">        stock = <span class="built_in">int</span>(redis_client.get(<span class="string">&quot;stock&quot;</span>) <span class="keyword">or</span> <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">if</span> stock &lt;= <span class="number">0</span>:</span><br><span class="line">            <span class="keyword">raise</span> HTTPException(status_code=<span class="number">400</span>, detail=<span class="string">&quot;库存不足&quot;</span>)</span><br><span class="line"></span><br><span class="line">        redis_client.decr(<span class="string">&quot;stock&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> &#123;<span class="string">&quot;msg&quot;</span>: <span class="string">&quot;秒杀成功&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>👉 有了 <code>with</code>，即使代码抛异常，也能保证锁被正确释放。</p>
+<hr>
+<h2 id="🧪-多副本-多线程脚本场景"><a href="#🧪-多副本-多线程脚本场景" class="headerlink" title="🧪 多副本 + 多线程脚本场景"></a>🧪 多副本 + 多线程脚本场景</h2><p>分布式锁不仅能保护接口，还能用在 <strong>后台定时任务</strong>。</p>
+<p>比如：多个 FastAPI 副本同时启动了一个定时脚本去生成报表，如果没加锁，结果就是——每个副本都生成一次报表，浪费资源还可能产生重复数据。</p>
+<p>有了 <code>get_redis_lock</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">generate_report</span>():</span><br><span class="line">    <span class="keyword">with</span> get_redis_lock(<span class="string">&quot;lock:report&quot;</span>, timeout=<span class="number">30</span>):</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;开始生成报表...&quot;</span>)</span><br><span class="line">        <span class="keyword">await</span> asyncio.sleep(<span class="number">5</span>)  <span class="comment"># 模拟耗时任务</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;报表生成完成 ✅&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这也适用于多副本的消费者脚本场景：例如高并发情况下，多个消费者同时向数据库插入数据，虽然插入之前都会进行检查数据是否存在，但还是会出现重复数据。这个时候就需要用到分布式锁来保证数据的唯一性。</p>
+<p>即使部署了多个副本，也<strong>只有一个实例</strong>能拿到锁执行，避免重复任务。</p>
+<hr>
+<h2 id="⚠️-踩坑与优化"><a href="#⚠️-踩坑与优化" class="headerlink" title="⚠️ 踩坑与优化"></a>⚠️ 踩坑与优化</h2><ol>
+<li><p><strong>锁过期时间太短</strong></p>
+<ul>
+<li>业务没执行完，锁就过期，其他实例进来重复执行。</li>
+<li>✅ 解决：加“锁续期”（看门狗）。</li>
+</ul>
+</li>
+<li><p><strong>锁过期时间太长</strong></p>
+<ul>
+<li>服务宕机后锁迟迟不释放，影响可用性。</li>
+</ul>
+</li>
+<li><p><strong>高并发下锁冲突严重</strong></p>
+<ul>
+<li>可以结合 <strong>消息队列</strong> 来削峰填谷。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="🏁-总结"><a href="#🏁-总结" class="headerlink" title="🏁 总结"></a>🏁 总结</h2><p>那次“库存超卖”事故后，我对分布式锁有了更深的认识：</p>
+<ul>
+<li>在 <strong>单机时代</strong>，<code>threading.Lock</code> 足够。</li>
+<li>在 <strong>分布式环境</strong>下，Redis 分布式锁是最常用的解决方案。</li>
+<li>在 <strong>FastAPI</strong> 项目里，配合 <code>@contextmanager</code> 写法，能让锁的获取与释放更安全、优雅。</li>
+</ul>
+<p>一句话：</p>
+<blockquote>
+<p><strong>分布式锁不是银弹，但在关键场景下，它是救命稻草。</strong></p>
+</blockquote>
+<hr>
+<p>每日踩一坑，生活更轻松。</p>
+<p>本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/about/">关于</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/tags/">标签</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/projects/">项目</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%9A%80-FastAPI-%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%9A%E4%BB%8E%E4%B8%80%E6%AC%A1%E2%80%9C%E5%BA%93%E5%AD%98%E8%B6%85%E5%8D%96%E2%80%9D%E8%AF%B4%E8%B5%B7"><span class="toc-number">1.</span> <span class="toc-text">🚀 FastAPI 中分布式锁的使用：从一次“库存超卖”说起</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%91-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">🔑 为什么要分布式锁？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A9-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%8E%9F%E7%90%86"><span class="toc-number">3.</span> <span class="toc-text">🧩 分布式锁的原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9A%A1-%E5%9C%A8-FastAPI-%E4%B8%AD%E7%9A%84%E5%AE%9E%E6%88%98%E7%A4%BA%E4%BE%8B"><span class="toc-number">4.</span> <span class="toc-text">⚡ 在 FastAPI 中的实战示例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%AA-%E5%A4%9A%E5%89%AF%E6%9C%AC-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E8%84%9A%E6%9C%AC%E5%9C%BA%E6%99%AF"><span class="toc-number">5.</span> <span class="toc-text">🧪 多副本 + 多线程脚本场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9A%A0%EF%B8%8F-%E8%B8%A9%E5%9D%91%E4%B8%8E%E4%BC%98%E5%8C%96"><span class="toc-number">6.</span> <span class="toc-text">⚠️ 踩坑与优化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%8F%81-%E6%80%BB%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">🏁 总结</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/&text=No.161-fastapi中分布式锁的使用"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.161-fastapi中分布式锁的使用"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/&is_video=false&description=No.161-fastapi中分布式锁的使用"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.161-fastapi中分布式锁的使用&body=Check out this article: https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.161-fastapi中分布式锁的使用"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.161-fastapi中分布式锁的使用"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.161-fastapi中分布式锁的使用"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/&title=No.161-fastapi中分布式锁的使用"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/&name=No.161-fastapi中分布式锁的使用&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/&t=No.161-fastapi中分布式锁的使用"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2025
+    Hope
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
