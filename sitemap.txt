@@ -1,3 +1,5 @@
+https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/
+https://hope-999.github.io/projects/index.html
 https://hope-999.github.io/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/
 https://hope-999.github.io/2025/09/26/No-160-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%9A%84%E4%BD%BF%E7%94%A8/
 https://hope-999.github.io/2025/09/15/No-159-fastapi%E4%B8%AD%E6%95%B0%E6%8D%AE%E5%BA%93%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E7%9A%84%E9%85%8D%E7%BD%AE%E7%9A%84%E4%BD%BF%E7%94%A8/
@@ -13,10 +15,10 @@ https://hope-999.github.io/2025/08/10/No-151-fastapi%E4%B8%AD%E6%89%B9%E9%87%8F%
 https://hope-999.github.io/2025/08/09/No-150-fastapi%E4%B8%AD%E5%BC%82%E6%AD%A5%E5%87%BD%E6%95%B0%E6%80%8E%E4%B9%88%E6%B5%8B%E8%AF%95/
 https://hope-999.github.io/2025/08/08/No-149-fastapi%E4%B8%AD%E6%A8%A1%E5%9E%8B%E8%BD%ACjson%E5%AD%97%E7%AC%A6%E4%B8%B2%E7%9A%84%E5%9D%91/
 https://hope-999.github.io/2025/08/07/No-148-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8C%96%E5%87%BA%E5%85%A5%E5%8F%82%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3/
-https://hope-999.github.io/projects/index.html
 https://hope-999.github.io/categories/index.html
 https://hope-999.github.io/tags/index.html
 https://hope-999.github.io/archives/index.html
 https://hope-999.github.io/about/index.html
 https://hope-999.github.io/
 https://hope-999.github.io/tags/fastapi/
+https://hope-999.github.io/tags/Celery/

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="导读FastApi 中使用定时任务和异步任务，首选 Celery。在启动 Celery Beat 的时候，会自动初始化一个 celery.backend_cleanup 任务。那么这个任务做了哪些事情呢？工作原理是什么？怎么使用和配置呢？ 作用它的作用：  遍历 result backend； 找出超过 result_expires 时间的任务结果； 将其删除。  关键配置项：    配置项 说明">
+<meta property="og:type" content="article">
+<meta property="og:title" content="No.162-fastapi中使用 celery.backend_cleanup 的工作原理">
+<meta property="og:url" content="https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/index.html">
+<meta property="og:site_name" content="Hope 的博客">
+<meta property="og:description" content="导读FastApi 中使用定时任务和异步任务，首选 Celery。在启动 Celery Beat 的时候，会自动初始化一个 celery.backend_cleanup 任务。那么这个任务做了哪些事情呢？工作原理是什么？怎么使用和配置呢？ 作用它的作用：  遍历 result backend； 找出超过 result_expires 时间的任务结果； 将其删除。  关键配置项：    配置项 说明">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-10-31T03:08:14.000Z">
+<meta property="article:modified_time" content="2025-10-31T03:39:24.569Z">
+<meta property="article:author" content="Hope">
+<meta property="article:tag" content="Celery">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>No.162-fastapi中使用 celery.backend_cleanup 的工作原理</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2025/09/28/No-161-fastapi%E4%B8%AD%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/&text=No.162-fastapi中使用 celery.backend_cleanup 的工作原理"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/&title=No.162-fastapi中使用 celery.backend_cleanup 的工作原理"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/&is_video=false&description=No.162-fastapi中使用 celery.backend_cleanup 的工作原理"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.162-fastapi中使用 celery.backend_cleanup 的工作原理&body=Check out this article: https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/&title=No.162-fastapi中使用 celery.backend_cleanup 的工作原理"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/&title=No.162-fastapi中使用 celery.backend_cleanup 的工作原理"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/&title=No.162-fastapi中使用 celery.backend_cleanup 的工作原理"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/&title=No.162-fastapi中使用 celery.backend_cleanup 的工作原理"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/&name=No.162-fastapi中使用 celery.backend_cleanup 的工作原理&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/&t=No.162-fastapi中使用 celery.backend_cleanup 的工作原理"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%9C%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">作用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">3.</span> <span class="toc-text">工作原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E5%92%8C%E4%BD%BF%E7%94%A8"><span class="toc-number">4.</span> <span class="toc-text">配置和使用</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        No.162-fastapi中使用 celery.backend_cleanup 的工作原理
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Hope</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-10-31T03:08:14.000Z" class="dt-published" itemprop="datePublished">2025-10-31</time>
+        
+        (Updated: <time datetime="2025-10-31T03:39:24.569Z" class="dt-updated" itemprop="dateModified">2025-10-31</time>)
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/Celery/" rel="tag">Celery</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="导读"><a href="#导读" class="headerlink" title="导读"></a>导读</h2><p><code>FastApi</code> 中使用定时任务和异步任务，首选 <code>Celery</code>。<br>在启动 <code>Celery Beat</code> 的时候，会自动初始化一个 <code>celery.backend_cleanup</code> 任务。<br>那么这个任务做了哪些事情呢？工作原理是什么？怎么使用和配置呢？</p>
+<h2 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h2><p>它的作用：</p>
+<ul>
+<li>遍历 result backend；</li>
+<li>找出超过 result_expires 时间的任务结果；</li>
+<li>将其删除。</li>
+</ul>
+<p>关键配置项：</p>
+<table>
+<thead>
+<tr>
+<th>配置项</th>
+<th>说明</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>result_expires</code></td>
+<td>任务结果保存的过期时间（秒）</td>
+<td><code>app.conf.result_expires = 3600</code>（1小时）</td>
+</tr>
+<tr>
+<td><code>result_backend</code></td>
+<td>存储任务结果的后端</td>
+<td><code>redis://localhost:6379/0</code></td>
+</tr>
+<tr>
+<td><code>result_backend_cleanup_interval</code>（Celery 5.3+）</td>
+<td>清理任务运行间隔</td>
+<td><code>app.conf.result_backend_cleanup_interval = 3600</code></td>
+</tr>
+</tbody></table>
+<p>举例配置：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">app.conf.update(</span><br><span class="line">    result_backend=<span class="string">&quot;redis://localhost:6379/0&quot;</span>,</span><br><span class="line">    result_expires=<span class="number">3600</span>,  <span class="comment"># 一小时，非常重要，它决定了你的任务跑完存储的时长</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>命令行触发：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">celery -A your_project call celery.backend_cleanup</span><br></pre></td></tr></table></figure>
+
+<p>python调用：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> celery <span class="keyword">import</span> Celery</span><br><span class="line"></span><br><span class="line">app = Celery(<span class="string">&#x27;your_project&#x27;</span>)</span><br><span class="line">app.send_task(<span class="string">&#x27;celery.backend_cleanup&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>如果你用的 <code>Beat scheduler</code> 为数据库，则会创建一条定时任务数据，通常是 <code>0 4 * * *</code>，表示在每天的凌晨 4 点执行。</p>
+<p>注意事项：</p>
+<ul>
+<li>如果你关闭了 result_persistent&#x3D;False 或根本没用 backend（比如只 fire-and-forget），则无需关心。</li>
+<li>如果你用的是 数据库 作为 backend（如 Django ORM、SQLAlchemy），清理是删除数据库记录；</li>
+<li>如果你用的是 Redis，则清理是删除对应的 key；</li>
+<li>对于自定义 backend，必须实现 cleanup() 方法，否则该任务无效。</li>
+</ul>
+<h2 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h2><ol>
+<li>首先判断结果数据是否过期</li>
+<li>再根据筛选出来的过期数据，进行删除</li>
+</ol>
+<p>判断过期数据的逻辑：<code>Celery</code> 通过比较 任务结果的存储时间 <code>+ result_expires</code> 来判断是否过期。<br>简化逻辑如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> now() - date_done &gt; result_expires:</span><br><span class="line">    <span class="comment"># 任务结果已过期，删除</span></span><br></pre></td></tr></table></figure>
+
+<p>不同 Backend 的判断方式：</p>
+<table>
+<thead>
+<tr>
+<th>Backend 类型</th>
+<th>过期判断方式</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Redis &#x2F; Memcached</strong></td>
+<td>利用 key 的 TTL（过期时间）</td>
+<td>Celery 在写入结果时会设置 <code>EXPIRE</code>，Redis 自动清除</td>
+</tr>
+<tr>
+<td><strong>Database（如 Django ORM、SQLAlchemy）</strong></td>
+<td>读取 <code>date_done</code> 字段，对比当前时间</td>
+<td>Celery 定期执行 <code>DELETE FROM celery_taskmeta WHERE date_done &lt; now() - result_expires</code></td>
+</tr>
+<tr>
+<td><strong>RPC &#x2F; AMQP</strong></td>
+<td>不持久化结果或自动过期</td>
+<td>一般不需清理</td>
+</tr>
+<tr>
+<td><strong>Filesystem &#x2F; S3 等持久化存储</strong></td>
+<td>检查保存文件的时间戳</td>
+<td>比对 <code>mtime</code> 或 metadata</td>
+</tr>
+<tr>
+<td><strong>Celery.backend_cleanup</strong></td>
+<td>自动清理过期数据</td>
+<td>Celery 定期执行 <code>backend_cleanup</code>，清理过期数据</td>
+</tr>
+</tbody></table>
+<p>以数据库 backend 为例：<br>在 Celery 的源码中（celery&#x2F;backends&#x2F;database&#x2F;<strong>init</strong>.py），<br>DatabaseBackend 有一个 cleanup() 方法：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">cleanup</span>(<span class="params">self</span>):</span><br><span class="line">    session = <span class="variable language_">self</span>.ResultSession()</span><br><span class="line">    now = <span class="variable language_">self</span>.app.now()</span><br><span class="line">    expired = now - <span class="variable language_">self</span>.expires</span><br><span class="line">    session.query(TaskModel).<span class="built_in">filter</span>(TaskModel.date_done &lt; expired).delete()</span><br><span class="line">    session.commit()</span><br></pre></td></tr></table></figure>
+
+<p>过期数据常见的存储方式：</p>
+<table>
+<thead>
+<tr>
+<th>Backend</th>
+<th>存储位置</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Redis</strong></td>
+<td>Redis 的 key-value</td>
+<td>key 类似于 <code>celery-task-meta-&lt;uuid&gt;</code></td>
+</tr>
+<tr>
+<td><strong>Database（Django ORM &#x2F; SQLAlchemy）</strong></td>
+<td>数据库表中（默认表名：<code>celery_taskmeta</code>）</td>
+<td>列：<code>id</code>, <code>task_id</code>, <code>status</code>, <code>result</code>, <code>date_done</code>, <code>traceback</code></td>
+</tr>
+<tr>
+<td><strong>AMQP (RabbitMQ)</strong></td>
+<td>消息队列，不持久化</td>
+<td>任务完成后即消费</td>
+</tr>
+<tr>
+<td><strong>Filesystem</strong></td>
+<td>文件系统的结果文件</td>
+<td>每个任务结果单独存文件</td>
+</tr>
+<tr>
+<td><strong>Cache backend (memcached)</strong></td>
+<td>缓存中</td>
+<td>自动过期</td>
+</tr>
+<tr>
+<td><strong>S3 &#x2F; HTTP</strong></td>
+<td>远程对象存储</td>
+<td>带 metadata 标识时间戳</td>
+</tr>
+</tbody></table>
+<h2 id="配置和使用"><a href="#配置和使用" class="headerlink" title="配置和使用"></a>配置和使用</h2><p>要使用它，需要在 <code>celery</code> 配置文件中添加以下配置：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># celeryconfig.py</span></span><br><span class="line">CELERY_RESULT_BACKEND = <span class="string">&#x27;redis://localhost:6379/0&#x27;</span></span><br><span class="line">CELERY_RESULT_EXPIRES = <span class="number">3600</span>  <span class="comment"># 1 hour   过期时间，单位为秒，存储够小时就删除</span></span><br><span class="line">CELERY_RESULT_CLEANUP_INTERVAL = <span class="number">60</span>  <span class="comment"># 1 minute，每分钟执行一次清理任务，过期任务会被自动删除</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<p>每日踩一坑，生活更轻松。</p>
+<p>本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/about/">关于</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/tags/">标签</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/projects/">项目</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%9C%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">作用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">3.</span> <span class="toc-text">工作原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E5%92%8C%E4%BD%BF%E7%94%A8"><span class="toc-number">4.</span> <span class="toc-text">配置和使用</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/&text=No.162-fastapi中使用 celery.backend_cleanup 的工作原理"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/&title=No.162-fastapi中使用 celery.backend_cleanup 的工作原理"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/&is_video=false&description=No.162-fastapi中使用 celery.backend_cleanup 的工作原理"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.162-fastapi中使用 celery.backend_cleanup 的工作原理&body=Check out this article: https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/&title=No.162-fastapi中使用 celery.backend_cleanup 的工作原理"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/&title=No.162-fastapi中使用 celery.backend_cleanup 的工作原理"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/&title=No.162-fastapi中使用 celery.backend_cleanup 的工作原理"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/&title=No.162-fastapi中使用 celery.backend_cleanup 的工作原理"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/&name=No.162-fastapi中使用 celery.backend_cleanup 的工作原理&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/&t=No.162-fastapi中使用 celery.backend_cleanup 的工作原理"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2025
+    Hope
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
