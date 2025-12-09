@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="导读在 FastAPI 项目中，我们经常需要调用外部 API 接口。Python 生态中有两个主流的 HTTP 客户端库：requests 和 httpx。 requests 是 Python 中最流行的同步 HTTP 库，而 httpx 是一个现代化的 HTTP 客户端，同时支持同步和异步操作。 那么在 FastAPI 这种异步框架中，我们应该选择哪个呢？本文将从技术特性、性能、兼容性等多个维度">
+<meta property="og:type" content="article">
+<meta property="og:title" content="No.164-fastapi中请求接口用httpx还是requests">
+<meta property="og:url" content="https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/index.html">
+<meta property="og:site_name" content="Hope 的博客">
+<meta property="og:description" content="导读在 FastAPI 项目中，我们经常需要调用外部 API 接口。Python 生态中有两个主流的 HTTP 客户端库：requests 和 httpx。 requests 是 Python 中最流行的同步 HTTP 库，而 httpx 是一个现代化的 HTTP 客户端，同时支持同步和异步操作。 那么在 FastAPI 这种异步框架中，我们应该选择哪个呢？本文将从技术特性、性能、兼容性等多个维度">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-12-09T02:11:27.000Z">
+<meta property="article:modified_time" content="2025-12-09T03:11:40.456Z">
+<meta property="article:author" content="Hope">
+<meta property="article:tag" content="fastapi">
+<meta property="article:tag" content="httpx">
+<meta property="article:tag" content="requests">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>No.164-fastapi中请求接口用httpx还是requests</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2025/12/03/No-163-fastapi%E4%B8%AD%E5%8A%A0%E8%BD%BD%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/&text=No.164-fastapi中请求接口用httpx还是requests"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/&title=No.164-fastapi中请求接口用httpx还是requests"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/&is_video=false&description=No.164-fastapi中请求接口用httpx还是requests"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.164-fastapi中请求接口用httpx还是requests&body=Check out this article: https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/&title=No.164-fastapi中请求接口用httpx还是requests"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/&title=No.164-fastapi中请求接口用httpx还是requests"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/&title=No.164-fastapi中请求接口用httpx还是requests"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/&title=No.164-fastapi中请求接口用httpx还是requests"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/&name=No.164-fastapi中请求接口用httpx还是requests&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/&t=No.164-fastapi中请求接口用httpx还是requests"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#httpx-vs-requests%EF%BC%9A%E6%A0%B8%E5%BF%83%E5%8C%BA%E5%88%AB"><span class="toc-number">2.</span> <span class="toc-text">httpx vs requests：核心区别</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%BC%82%E6%AD%A5%E6%94%AF%E6%8C%81"><span class="toc-number">2.1.</span> <span class="toc-text">1. 异步支持</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-HTTP-2-%E6%94%AF%E6%8C%81"><span class="toc-number">2.2.</span> <span class="toc-text">2. HTTP&#x2F;2 支持</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94"><span class="toc-number">2.3.</span> <span class="toc-text">3. 性能对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-API-%E8%AE%BE%E8%AE%A1"><span class="toc-number">2.4.</span> <span class="toc-text">4. API 设计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B%E5%AF%B9%E6%AF%94"><span class="toc-number">2.5.</span> <span class="toc-text">5. 代码示例对比</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%A8-FastAPI-%E4%B8%AD%E4%BD%BF%E7%94%A8-httpx%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">2.5.1.</span> <span class="toc-text">在 FastAPI 中使用 httpx（推荐）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%A8-FastAPI-%E4%B8%AD%E4%BD%BF%E7%94%A8-requests%EF%BC%88%E4%B8%8D%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">2.5.2.</span> <span class="toc-text">在 FastAPI 中使用 requests（不推荐）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7%E5%AF%B9%E6%AF%94"><span class="toc-number">2.6.</span> <span class="toc-text">6. 高级特性对比</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#httpx-%E7%9A%84%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7"><span class="toc-number">2.6.1.</span> <span class="toc-text">httpx 的高级特性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#requests-%E7%9A%84%E7%89%B9%E6%80%A7"><span class="toc-number">2.6.2.</span> <span class="toc-text">requests 的特性</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-%E4%BE%9D%E8%B5%96%E5%92%8C%E5%85%BC%E5%AE%B9%E6%80%A7"><span class="toc-number">2.7.</span> <span class="toc-text">7. 依赖和兼容性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E7%94%A8%E5%93%AA%E4%B8%AA%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">总结：什么时候用哪个？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A8%E8%8D%90%E4%BD%BF%E7%94%A8-httpx-%E7%9A%84%E5%9C%BA%E6%99%AF"><span class="toc-number">3.1.</span> <span class="toc-text">推荐使用 httpx 的场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AF%E4%BB%A5%E4%BD%BF%E7%94%A8-requests-%E7%9A%84%E5%9C%BA%E6%99%AF"><span class="toc-number">3.2.</span> <span class="toc-text">可以使用 requests 的场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8-FastAPI-%E4%B8%AD%E7%9A%84%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">3.3.</span> <span class="toc-text">在 FastAPI 中的最佳实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E8%AE%BA"><span class="toc-number">4.</span> <span class="toc-text">结论</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        No.164-fastapi中请求接口用httpx还是requests
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Hope</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-12-09T02:11:27.000Z" class="dt-published" itemprop="datePublished">2025-12-09</time>
+        
+        (Updated: <time datetime="2025-12-09T03:11:40.456Z" class="dt-updated" itemprop="dateModified">2025-12-09</time>)
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/fastapi/" rel="tag">fastapi</a>, <a class="p-category" href="/tags/httpx/" rel="tag">httpx</a>, <a class="p-category" href="/tags/requests/" rel="tag">requests</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="导读"><a href="#导读" class="headerlink" title="导读"></a>导读</h2><p>在 <code>FastAPI</code> 项目中，我们经常需要调用外部 API 接口。Python 生态中有两个主流的 HTTP 客户端库：<code>requests</code> 和 <code>httpx</code>。</p>
+<p><code>requests</code> 是 Python 中最流行的同步 HTTP 库，而 <code>httpx</code> 是一个现代化的 HTTP 客户端，同时支持同步和异步操作。</p>
+<p>那么在 <code>FastAPI</code> 这种异步框架中，我们应该选择哪个呢？本文将从技术特性、性能、兼容性等多个维度进行深入分析。</p>
+<h2 id="httpx-vs-requests：核心区别"><a href="#httpx-vs-requests：核心区别" class="headerlink" title="httpx vs requests：核心区别"></a>httpx vs requests：核心区别</h2><h3 id="1-异步支持"><a href="#1-异步支持" class="headerlink" title="1. 异步支持"></a>1. 异步支持</h3><p><strong>httpx</strong>：</p>
+<ul>
+<li>原生支持异步操作，基于 <code>asyncio</code></li>
+<li>可以无缝集成到 <code>FastAPI</code> 的异步路由中</li>
+<li>支持 <code>async/await</code> 语法</li>
+</ul>
+<p><strong>requests</strong>：</p>
+<ul>
+<li>仅支持同步操作</li>
+<li>在异步环境中使用会阻塞事件循环</li>
+<li>需要使用线程池或 <code>asyncio.to_thread()</code> 包装</li>
+</ul>
+<h3 id="2-HTTP-2-支持"><a href="#2-HTTP-2-支持" class="headerlink" title="2. HTTP&#x2F;2 支持"></a>2. HTTP&#x2F;2 支持</h3><p><strong>httpx</strong>：</p>
+<ul>
+<li>原生支持 HTTP&#x2F;2 协议</li>
+<li>可以提升性能，特别是在需要多次请求的场景下</li>
+</ul>
+<p><strong>requests</strong>：</p>
+<ul>
+<li>仅支持 HTTP&#x2F;1.1</li>
+<li>不支持 HTTP&#x2F;2</li>
+</ul>
+<h3 id="3-性能对比"><a href="#3-性能对比" class="headerlink" title="3. 性能对比"></a>3. 性能对比</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>httpx</th>
+<th>requests</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>异步支持</td>
+<td>✅ 原生支持</td>
+<td>❌ 需要包装</td>
+</tr>
+<tr>
+<td>HTTP&#x2F;2</td>
+<td>✅ 支持</td>
+<td>❌ 不支持</td>
+</tr>
+<tr>
+<td>连接池</td>
+<td>✅ 自动管理</td>
+<td>✅ 支持</td>
+</tr>
+<tr>
+<td>超时控制</td>
+<td>✅ 更灵活</td>
+<td>✅ 支持</td>
+</tr>
+<tr>
+<td>流式响应</td>
+<td>✅ 支持</td>
+<td>✅ 支持</td>
+</tr>
+<tr>
+<td>并发性能</td>
+<td>✅ 优秀</td>
+<td>⚠️ 受限于 GIL</td>
+</tr>
+</tbody></table>
+<h3 id="4-API-设计"><a href="#4-API-设计" class="headerlink" title="4. API 设计"></a>4. API 设计</h3><p><strong>httpx</strong>：</p>
+<ul>
+<li>API 设计与 <code>requests</code> 高度相似，学习成本低</li>
+<li>支持同步和异步两种模式</li>
+<li>更现代的 Python 特性支持</li>
+</ul>
+<p><strong>requests</strong>：</p>
+<ul>
+<li>成熟稳定，API 简洁直观</li>
+<li>生态丰富，文档完善</li>
+<li>仅支持同步模式</li>
+</ul>
+<h3 id="5-代码示例对比"><a href="#5-代码示例对比" class="headerlink" title="5. 代码示例对比"></a>5. 代码示例对比</h3><h4 id="在-FastAPI-中使用-httpx（推荐）"><a href="#在-FastAPI-中使用-httpx（推荐）" class="headerlink" title="在 FastAPI 中使用 httpx（推荐）"></a>在 FastAPI 中使用 httpx（推荐）</h4><p><strong>异步模式</strong>（推荐）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI</span><br><span class="line"><span class="keyword">import</span> httpx</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/fetch-data&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">fetch_data</span>():</span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">with</span> httpx.AsyncClient() <span class="keyword">as</span> client:</span><br><span class="line">        response = <span class="keyword">await</span> client.get(<span class="string">&quot;https://api.example.com/data&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> response.json()</span><br></pre></td></tr></table></figure>
+
+<p><strong>同步模式</strong>（httpx 也支持同步操作，API 与 requests 几乎一致）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> httpx</span><br><span class="line"></span><br><span class="line"><span class="comment"># 方式1：使用上下文管理器（推荐）</span></span><br><span class="line"><span class="keyword">with</span> httpx.Client() <span class="keyword">as</span> client:</span><br><span class="line">    response = client.get(<span class="string">&quot;https://api.example.com/data&quot;</span>)</span><br><span class="line">    data = response.json()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 方式2：直接调用（不推荐，需要手动关闭）</span></span><br><span class="line">client = httpx.Client()</span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    response = client.get(<span class="string">&quot;https://api.example.com/data&quot;</span>)</span><br><span class="line">    data = response.json()</span><br><span class="line"><span class="keyword">finally</span>:</span><br><span class="line">    client.close()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 方式3：一次性请求（最简单，适合单次请求）</span></span><br><span class="line">response = httpx.get(<span class="string">&quot;https://api.example.com/data&quot;</span>)</span><br><span class="line">data = response.json()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 同步模式也支持高级特性</span></span><br><span class="line"><span class="keyword">with</span> httpx.Client(</span><br><span class="line">    timeout=httpx.Timeout(<span class="number">10.0</span>, connect=<span class="number">5.0</span>),</span><br><span class="line">    http2=<span class="literal">True</span>,  <span class="comment"># 同步模式也支持 HTTP/2</span></span><br><span class="line">    headers=&#123;<span class="string">&quot;Authorization&quot;</span>: <span class="string">&quot;Bearer token&quot;</span>&#125;</span><br><span class="line">) <span class="keyword">as</span> client:</span><br><span class="line">    response = client.post(</span><br><span class="line">        <span class="string">&quot;https://api.example.com/data&quot;</span>,</span><br><span class="line">        json=&#123;<span class="string">&quot;key&quot;</span>: <span class="string">&quot;value&quot;</span>&#125;</span><br><span class="line">    )</span><br><span class="line">    response.raise_for_status()</span><br><span class="line">    <span class="keyword">return</span> response.json()</span><br></pre></td></tr></table></figure>
+
+<p><strong>同步 vs 异步对比</strong>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 同步模式（httpx.Client）</span></span><br><span class="line"><span class="keyword">with</span> httpx.Client() <span class="keyword">as</span> client:</span><br><span class="line">    response = client.get(<span class="string">&quot;https://api.example.com/data&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 异步模式（httpx.AsyncClient）</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">with</span> httpx.AsyncClient() <span class="keyword">as</span> client:</span><br><span class="line">    response = <span class="keyword">await</span> client.get(<span class="string">&quot;https://api.example.com/data&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h4 id="在-FastAPI-中使用-requests（不推荐）"><a href="#在-FastAPI-中使用-requests（不推荐）" class="headerlink" title="在 FastAPI 中使用 requests（不推荐）"></a>在 FastAPI 中使用 requests（不推荐）</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> asyncio</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/fetch-data&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">fetch_data</span>():</span><br><span class="line">    <span class="comment"># 方式1：使用 asyncio.to_thread（Python 3.9+）</span></span><br><span class="line">    response = <span class="keyword">await</span> asyncio.to_thread(</span><br><span class="line">        requests.get, <span class="string">&quot;https://api.example.com/data&quot;</span></span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">return</span> response.json()</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 方式2：使用线程池（不推荐，性能较差）</span></span><br><span class="line">    <span class="comment"># loop = asyncio.get_event_loop()</span></span><br><span class="line">    <span class="comment"># response = await loop.run_in_executor(</span></span><br><span class="line">    <span class="comment">#     None, requests.get, &quot;https://api.example.com/data&quot;</span></span><br><span class="line">    <span class="comment"># )</span></span><br><span class="line">    <span class="comment"># return response.json()</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="6-高级特性对比"><a href="#6-高级特性对比" class="headerlink" title="6. 高级特性对比"></a>6. 高级特性对比</h3><h4 id="httpx-的高级特性"><a href="#httpx-的高级特性" class="headerlink" title="httpx 的高级特性"></a>httpx 的高级特性</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> httpx</span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 支持 HTTP/2</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">with</span> httpx.AsyncClient(http2=<span class="literal">True</span>) <span class="keyword">as</span> client:</span><br><span class="line">    response = <span class="keyword">await</span> client.get(<span class="string">&quot;https://example.com&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 支持流式请求和响应</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">with</span> httpx.AsyncClient() <span class="keyword">as</span> client:</span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">with</span> client.stream(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;https://example.com&quot;</span>) <span class="keyword">as</span> response:</span><br><span class="line">        <span class="keyword">async</span> <span class="keyword">for</span> chunk <span class="keyword">in</span> response.aiter_bytes():</span><br><span class="line">            process_chunk(chunk)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 支持 WebSocket（额外安装 httpx[ws]）</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">with</span> httpx.AsyncClient() <span class="keyword">as</span> client:</span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">with</span> client.websocket_connect(<span class="string">&quot;wss://example.com/ws&quot;</span>) <span class="keyword">as</span> ws:</span><br><span class="line">        <span class="keyword">await</span> ws.send_text(<span class="string">&quot;Hello&quot;</span>)</span><br><span class="line">        message = <span class="keyword">await</span> ws.receive_text()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 更灵活的超时配置</span></span><br><span class="line">timeout = httpx.Timeout(<span class="number">10.0</span>, connect=<span class="number">5.0</span>)</span><br><span class="line"><span class="keyword">async</span> <span class="keyword">with</span> httpx.AsyncClient(timeout=timeout) <span class="keyword">as</span> client:</span><br><span class="line">    response = <span class="keyword">await</span> client.get(<span class="string">&quot;https://example.com&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h4 id="requests-的特性"><a href="#requests-的特性" class="headerlink" title="requests 的特性"></a>requests 的特性</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 流式响应</span></span><br><span class="line">response = requests.get(<span class="string">&quot;https://example.com&quot;</span>, stream=<span class="literal">True</span>)</span><br><span class="line"><span class="keyword">for</span> chunk <span class="keyword">in</span> response.iter_content(chunk_size=<span class="number">8192</span>):</span><br><span class="line">    process_chunk(chunk)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 会话管理</span></span><br><span class="line">session = requests.Session()</span><br><span class="line">session.headers.update(&#123;<span class="string">&quot;Authorization&quot;</span>: <span class="string">&quot;Bearer token&quot;</span>&#125;)</span><br><span class="line">response = session.get(<span class="string">&quot;https://api.example.com/data&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-依赖和兼容性"><a href="#7-依赖和兼容性" class="headerlink" title="7. 依赖和兼容性"></a>7. 依赖和兼容性</h3><p><strong>httpx</strong>：</p>
+<ul>
+<li>依赖较少，但需要 Python 3.8+</li>
+<li>与 <code>FastAPI</code>、<code>Starlette</code> 等异步框架完美集成</li>
+<li>可以替代 <code>requests</code> 的大部分功能</li>
+</ul>
+<p><strong>requests</strong>：</p>
+<ul>
+<li>依赖 <code>urllib3</code>，生态成熟</li>
+<li>Python 2.7+ 和 Python 3.x 都支持</li>
+<li>在同步代码中表现优秀</li>
+</ul>
+<h2 id="总结：什么时候用哪个？"><a href="#总结：什么时候用哪个？" class="headerlink" title="总结：什么时候用哪个？"></a>总结：什么时候用哪个？</h2><h3 id="推荐使用-httpx-的场景"><a href="#推荐使用-httpx-的场景" class="headerlink" title="推荐使用 httpx 的场景"></a>推荐使用 httpx 的场景</h3><ol>
+<li><p><strong>FastAPI 异步路由中调用外部 API</strong>（强烈推荐）</p>
+<ul>
+<li>原生异步支持，不会阻塞事件循环</li>
+<li>性能更好，可以充分利用异步并发</li>
+</ul>
+</li>
+<li><p><strong>需要 HTTP&#x2F;2 支持</strong></p>
+<ul>
+<li>某些现代 API 服务要求或推荐使用 HTTP&#x2F;2</li>
+</ul>
+</li>
+<li><p><strong>高并发场景</strong></p>
+<ul>
+<li>需要同时发起大量 HTTP 请求</li>
+<li>异步特性可以显著提升性能</li>
+</ul>
+</li>
+<li><p><strong>需要 WebSocket 支持</strong></p>
+<ul>
+<li><code>httpx</code> 可以处理 WebSocket 连接</li>
+</ul>
+</li>
+</ol>
+<h3 id="可以使用-requests-的场景"><a href="#可以使用-requests-的场景" class="headerlink" title="可以使用 requests 的场景"></a>可以使用 requests 的场景</h3><ol>
+<li><p><strong>同步代码环境</strong></p>
+<ul>
+<li>不在异步框架中，使用 <code>requests</code> 更简单直接</li>
+<li><strong>注意</strong>：<code>httpx</code> 也支持同步模式（<code>httpx.Client</code>），API 与 <code>requests</code> 几乎一致，可以作为 <code>requests</code> 的现代化替代</li>
+</ul>
+</li>
+<li><p><strong>已有大量 requests 代码</strong></p>
+<ul>
+<li>迁移成本较高，可以继续使用</li>
+<li>但建议逐步迁移到 <code>httpx</code>（同步模式迁移成本很低）</li>
+</ul>
+</li>
+<li><p><strong>简单的脚本或工具</strong></p>
+<ul>
+<li>不需要异步特性，<code>requests</code> 足够使用</li>
+<li>也可以考虑使用 <code>httpx</code> 的同步模式，获得更好的性能和 HTTP&#x2F;2 支持</li>
+</ul>
+</li>
+</ol>
+<h3 id="在-FastAPI-中的最佳实践"><a href="#在-FastAPI-中的最佳实践" class="headerlink" title="在 FastAPI 中的最佳实践"></a>在 FastAPI 中的最佳实践</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, HTTPException</span><br><span class="line"><span class="keyword">import</span> httpx</span><br><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> <span class="type">Optional</span></span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建全局的 httpx 客户端（推荐）</span></span><br><span class="line"><span class="comment"># 这样可以复用连接，提升性能</span></span><br><span class="line">httpx_client = httpx.AsyncClient(</span><br><span class="line">    timeout=httpx.Timeout(<span class="number">10.0</span>, connect=<span class="number">5.0</span>),</span><br><span class="line">    limits=httpx.Limits(max_keepalive_connections=<span class="number">20</span>, max_connections=<span class="number">100</span>)</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.on_event(<span class="params"><span class="string">&quot;shutdown&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">shutdown</span>():</span><br><span class="line">    <span class="keyword">await</span> httpx_client.aclose()</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/api/proxy&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">proxy_external_api</span>():</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        response = <span class="keyword">await</span> httpx_client.get(<span class="string">&quot;https://api.example.com/data&quot;</span>)</span><br><span class="line">        response.raise_for_status()</span><br><span class="line">        <span class="keyword">return</span> response.json()</span><br><span class="line">    <span class="keyword">except</span> httpx.HTTPError <span class="keyword">as</span> e:</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">500</span>, detail=<span class="string">f&quot;External API error: <span class="subst">&#123;<span class="built_in">str</span>(e)&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>使用全局客户端可以复用连接，提升性能</li>
+<li>记得在应用关闭时调用 <code>aclose()</code> 关闭客户端</li>
+<li>合理设置超时和连接限制，避免资源耗尽</li>
+</ul>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>在 <code>FastAPI</code> 项目中，<strong>强烈推荐使用 <code>httpx</code></strong>，原因如下：</p>
+<ol>
+<li><strong>原生异步支持</strong>：与 <code>FastAPI</code> 的异步特性完美匹配，不会阻塞事件循环</li>
+<li><strong>更好的性能</strong>：在高并发场景下，异步特性可以显著提升性能</li>
+<li><strong>现代化特性</strong>：支持 HTTP&#x2F;2、WebSocket 等现代协议</li>
+<li><strong>API 兼容</strong>：与 <code>requests</code> API 高度相似，迁移成本低</li>
+<li><strong>官方推荐</strong>：<code>FastAPI</code> 官方文档中也推荐使用 <code>httpx</code> 进行异步 HTTP 请求</li>
+</ol>
+<p>虽然 <code>requests</code> 仍然是一个优秀的库，但在异步框架中使用它会带来性能损失和代码复杂度。除非有特殊原因（如需要兼容旧代码），否则在 <code>FastAPI</code> 中应该优先选择 <code>httpx</code>。</p>
+<hr>
+<p>每日踩一坑，生活更轻松。</p>
+<p>本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/about/">关于</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/tags/">标签</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/projects/">项目</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#httpx-vs-requests%EF%BC%9A%E6%A0%B8%E5%BF%83%E5%8C%BA%E5%88%AB"><span class="toc-number">2.</span> <span class="toc-text">httpx vs requests：核心区别</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%BC%82%E6%AD%A5%E6%94%AF%E6%8C%81"><span class="toc-number">2.1.</span> <span class="toc-text">1. 异步支持</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-HTTP-2-%E6%94%AF%E6%8C%81"><span class="toc-number">2.2.</span> <span class="toc-text">2. HTTP&#x2F;2 支持</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94"><span class="toc-number">2.3.</span> <span class="toc-text">3. 性能对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-API-%E8%AE%BE%E8%AE%A1"><span class="toc-number">2.4.</span> <span class="toc-text">4. API 设计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B%E5%AF%B9%E6%AF%94"><span class="toc-number">2.5.</span> <span class="toc-text">5. 代码示例对比</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%A8-FastAPI-%E4%B8%AD%E4%BD%BF%E7%94%A8-httpx%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">2.5.1.</span> <span class="toc-text">在 FastAPI 中使用 httpx（推荐）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%A8-FastAPI-%E4%B8%AD%E4%BD%BF%E7%94%A8-requests%EF%BC%88%E4%B8%8D%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">2.5.2.</span> <span class="toc-text">在 FastAPI 中使用 requests（不推荐）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7%E5%AF%B9%E6%AF%94"><span class="toc-number">2.6.</span> <span class="toc-text">6. 高级特性对比</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#httpx-%E7%9A%84%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7"><span class="toc-number">2.6.1.</span> <span class="toc-text">httpx 的高级特性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#requests-%E7%9A%84%E7%89%B9%E6%80%A7"><span class="toc-number">2.6.2.</span> <span class="toc-text">requests 的特性</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-%E4%BE%9D%E8%B5%96%E5%92%8C%E5%85%BC%E5%AE%B9%E6%80%A7"><span class="toc-number">2.7.</span> <span class="toc-text">7. 依赖和兼容性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E7%94%A8%E5%93%AA%E4%B8%AA%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">总结：什么时候用哪个？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A8%E8%8D%90%E4%BD%BF%E7%94%A8-httpx-%E7%9A%84%E5%9C%BA%E6%99%AF"><span class="toc-number">3.1.</span> <span class="toc-text">推荐使用 httpx 的场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AF%E4%BB%A5%E4%BD%BF%E7%94%A8-requests-%E7%9A%84%E5%9C%BA%E6%99%AF"><span class="toc-number">3.2.</span> <span class="toc-text">可以使用 requests 的场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8-FastAPI-%E4%B8%AD%E7%9A%84%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">3.3.</span> <span class="toc-text">在 FastAPI 中的最佳实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E8%AE%BA"><span class="toc-number">4.</span> <span class="toc-text">结论</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/&text=No.164-fastapi中请求接口用httpx还是requests"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/&title=No.164-fastapi中请求接口用httpx还是requests"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/&is_video=false&description=No.164-fastapi中请求接口用httpx还是requests"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.164-fastapi中请求接口用httpx还是requests&body=Check out this article: https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/&title=No.164-fastapi中请求接口用httpx还是requests"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/&title=No.164-fastapi中请求接口用httpx还是requests"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/&title=No.164-fastapi中请求接口用httpx还是requests"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/&title=No.164-fastapi中请求接口用httpx还是requests"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/&name=No.164-fastapi中请求接口用httpx还是requests&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/&t=No.164-fastapi中请求接口用httpx还是requests"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2025
+    Hope
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
