@@ -1,3 +1,4 @@
+https://hope-999.github.io/2025/12/16/No-165-fastapi%E4%B8%AD%E6%A0%A1%E9%AA%8Ccrontab%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%A0%BC%E5%BC%8F/
 https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/
 https://hope-999.github.io/2025/12/03/No-163-fastapi%E4%B8%AD%E5%8A%A0%E8%BD%BD%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F/
 https://hope-999.github.io/2025/10/31/No-162-fastapi%E4%B8%AD%E4%BD%BF%E7%94%A8celery.backend_cleanup%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/
@@ -26,3 +27,6 @@ https://hope-999.github.io/tags/fastapi/
 https://hope-999.github.io/tags/Celery/
 https://hope-999.github.io/tags/httpx/
 https://hope-999.github.io/tags/requests/
+https://hope-999.github.io/tags/crontab/
+https://hope-999.github.io/tags/pydantic/
+https://hope-999.github.io/tags/pytest/
