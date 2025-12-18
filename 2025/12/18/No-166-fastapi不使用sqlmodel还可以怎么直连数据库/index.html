@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="导读很多同学在用 FastAPI 做项目时，第一反应就是：上 ORM，用 SQLModel、SQLAlchemy 这一套。 但在不少业务场景下，我们其实并不需要完整的 ORM 能力，而是更希望：  沿用 DBA 已经写好的 SQL，后端只负责调用； 自己手写 SQL，精细控制索引、锁、执行计划； 项目体量不大，上 ORM 反而增加心智负担和调试成本。  这时候一个很自然的问题就来了：  在 Fas">
+<meta property="og:type" content="article">
+<meta property="og:title" content="No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库">
+<meta property="og:url" content="https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/index.html">
+<meta property="og:site_name" content="Hope 的博客">
+<meta property="og:description" content="导读很多同学在用 FastAPI 做项目时，第一反应就是：上 ORM，用 SQLModel、SQLAlchemy 这一套。 但在不少业务场景下，我们其实并不需要完整的 ORM 能力，而是更希望：  沿用 DBA 已经写好的 SQL，后端只负责调用； 自己手写 SQL，精细控制索引、锁、执行计划； 项目体量不大，上 ORM 反而增加心智负担和调试成本。  这时候一个很自然的问题就来了：  在 Fas">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-12-18T04:58:04.000Z">
+<meta property="article:modified_time" content="2025-12-18T05:21:13.557Z">
+<meta property="article:author" content="Hope">
+<meta property="article:tag" content="FastAPI">
+<meta property="article:tag" content="数据库">
+<meta property="article:tag" content="连接池">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="DBUtils">
+<meta property="article:tag" content="后端开发">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2025/12/16/No-165-fastapi%E4%B8%AD%E6%A0%A1%E9%AA%8Ccrontab%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%A0%BC%E5%BC%8F/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/&text=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/&title=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/&is_video=false&description=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库&body=Check out this article: https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/&title=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/&title=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/&title=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/&title=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/&name=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/&t=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%80%E5%AE%9A%E8%A6%81%E4%B8%8A%E8%BF%9E%E6%8E%A5%E6%B1%A0%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">一、为什么一定要上连接池？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%96%B9%E6%A1%88%E6%95%B4%E4%BD%93%E8%AE%BE%E8%AE%A1"><span class="toc-number">3.</span> <span class="toc-text">二、方案整体设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%AE%89%E8%A3%85%E4%BE%9D%E8%B5%96"><span class="toc-number">4.</span> <span class="toc-text">三、安装依赖</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B8%A9%E5%9D%91%E6%97%A5%E8%AE%B0%EF%BC%9AModuleNotFoundError-No-module-named-%E2%80%98DBUtils%E2%80%99"><span class="toc-number">4.1.</span> <span class="toc-text">踩坑日记：ModuleNotFoundError: No module named ‘DBUtils’</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%B0%81%E8%A3%85-DBUtils-MySQL-%E8%BF%9E%E6%8E%A5%E6%B1%A0"><span class="toc-number">5.</span> <span class="toc-text">四、封装 DBUtils MySQL 连接池</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%9C%A8-FastAPI-%E4%B8%AD%E4%BD%BF%E7%94%A8%E8%BF%9E%E6%8E%A5%E6%B1%A0%E6%89%A7%E8%A1%8C-SQL"><span class="toc-number">6.</span> <span class="toc-text">五、在 FastAPI 中使用连接池执行 SQL</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E4%B8%8D%E7%94%A8%E8%BF%9E%E6%8E%A5%E6%B1%A0%E6%97%B6%E7%9A%84%E5%B8%B8%E8%A7%81%E5%86%99%E6%B3%95%E5%AF%B9%E6%AF%94"><span class="toc-number">7.</span> <span class="toc-text">六、不用连接池时的常见写法对比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%AE%9E%E6%88%98%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E4%BC%98%E5%8C%96%E5%BB%BA%E8%AE%AE"><span class="toc-number">8.</span> <span class="toc-text">七、实战中的一些优化建议</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">9.</span> <span class="toc-text">总结</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Hope</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-12-18T04:58:04.000Z" class="dt-published" itemprop="datePublished">2025-12-18</time>
+        
+        (Updated: <time datetime="2025-12-18T05:21:13.557Z" class="dt-updated" itemprop="dateModified">2025-12-18</time>)
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/DBUtils/" rel="tag">DBUtils</a>, <a class="p-category" href="/tags/FastAPI/" rel="tag">FastAPI</a>, <a class="p-category" href="/tags/MySQL/" rel="tag">MySQL</a>, <a class="p-category" href="/tags/%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91/" rel="tag">后端开发</a>, <a class="p-category" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a>, <a class="p-category" href="/tags/%E8%BF%9E%E6%8E%A5%E6%B1%A0/" rel="tag">连接池</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="导读"><a href="#导读" class="headerlink" title="导读"></a>导读</h2><p>很多同学在用 FastAPI 做项目时，第一反应就是：上 ORM，用 <code>SQLModel</code>、<code>SQLAlchemy</code> 这一套。</p>
+<p>但在不少业务场景下，我们其实并不需要完整的 ORM 能力，而是更希望：</p>
+<ul>
+<li><strong>沿用 DBA 已经写好的 SQL</strong>，后端只负责调用；</li>
+<li><strong>自己手写 SQL</strong>，精细控制索引、锁、执行计划；</li>
+<li><strong>项目体量不大</strong>，上 ORM 反而增加心智负担和调试成本。</li>
+</ul>
+<p>这时候一个很自然的问题就来了：</p>
+<blockquote>
+<p>在 FastAPI 里，如果我不用 SQLModel，只想<strong>直连 MySQL 数据库并执行 SQL</strong>，还能不能优雅一点？</p>
+</blockquote>
+<p>答案是：完全可以，而且还可以做得很专业。</p>
+<p>这篇文章我们就用一个实战方案，带你搞懂：</p>
+<ul>
+<li><strong>如何在 FastAPI 中用 DBUtils 管理 MySQL 连接池</strong>；</li>
+<li>不用 SQLModel，只靠 <strong><code>pymysql</code> + 手写 SQL</strong> 就能跑通生产项目；</li>
+<li>如何写出既<strong>性能稳定</strong>又<strong>易于维护</strong>的数据库访问代码。</li>
+</ul>
+<hr>
+<h2 id="一、为什么一定要上连接池？"><a href="#一、为什么一定要上连接池？" class="headerlink" title="一、为什么一定要上连接池？"></a>一、为什么一定要上连接池？</h2><p>先统一一个共识：<strong>不用 SQLModel ≠ 裸连数据库</strong>。</p>
+<p>如果只是简单地在接口里：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pymysql</span><br><span class="line"></span><br><span class="line">conn = pymysql.connect(...)</span><br><span class="line"><span class="comment"># 执行 SQL</span></span><br><span class="line">conn.close()</span><br></pre></td></tr></table></figure>
+
+<p>在本地测试、Demo 场景当然没问题。但一旦到了线上高并发环境，很容易踩坑：</p>
+<ul>
+<li><strong>每个请求都新建连接</strong>：频繁 TCP 握手、认证，开销大、延迟高；</li>
+<li><strong>容易忘记关闭连接</strong>：代码分支一复杂，没处理好的地方就会连接泄漏；</li>
+<li><strong>连接数量不可控</strong>：并发上来后，MySQL 连接数很容易被打满。</li>
+</ul>
+<p>为了同时兼顾“直连 SQL 的灵活性”和“生产级的稳定性”，最合适的做法就是：</p>
+<blockquote>
+<p><strong>连接池 + 手写 SQL</strong></p>
+</blockquote>
+<p>这里我们选择：</p>
+<ul>
+<li><strong>驱动</strong>：<code>pymysql</code>（同步 MySQL 驱动，生态成熟）；</li>
+<li><strong>连接池</strong>：<code>DBUtils</code>（专门做数据库连接池的库，简单好用）。</li>
+</ul>
+<p>FastAPI 支持同步视图函数（<code>def</code>）和异步视图函数（<code>async def</code>），我们完全可以：</p>
+<ul>
+<li>用 <strong>同步代码 + 连接池</strong> 处理数据库；</li>
+<li>用 FastAPI 的依赖注入管理连接的“借用&#x2F;归还”。</li>
+</ul>
+<hr>
+<h2 id="二、方案整体设计"><a href="#二、方案整体设计" class="headerlink" title="二、方案整体设计"></a>二、方案整体设计</h2><p>我们希望做到几件事：</p>
+<ol>
+<li><strong>应用启动时</strong>，创建一个 MySQL 连接池；</li>
+<li><strong>每个请求到来时</strong>，从池里借出一个连接；</li>
+<li>业务代码只需要：<ul>
+<li>获取连接 → 执行 SQL → 提交&#x2F;回滚 → 归还连接；</li>
+</ul>
+</li>
+<li><strong>应用关闭时</strong>，优雅关闭连接池，释放资源。</li>
+</ol>
+<p>用更形象的话来讲：</p>
+<blockquote>
+<p>把「连接池」当做停车场：</p>
+<ul>
+<li>启动时建好停车场（创建一定数量的连接）；</li>
+<li>每辆车（每个请求）来时，从停车场里“借一个车位”（拿一个连接）；</li>
+<li>用完了就把车位还回去（连接归还给池子）；</li>
+<li>停车场本身负责车位的总数控制和资源清理。</li>
+</ul>
+</blockquote>
+<p>下面我们一步步实现这个方案。</p>
+<hr>
+<h2 id="三、安装依赖"><a href="#三、安装依赖" class="headerlink" title="三、安装依赖"></a>三、安装依赖</h2><p>我们需要的核心依赖有：</p>
+<ul>
+<li><code>fastapi</code>：Web 框架；</li>
+<li><code>uvicorn</code>：ASGI 服务器；</li>
+<li><code>pymysql</code>：MySQL 驱动；</li>
+<li><code>DBUtils</code>：连接池管理库。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install fastapi uvicorn pymysql DBUtils</span><br></pre></td></tr></table></figure>
+
+<h3 id="踩坑日记：ModuleNotFoundError-No-module-named-‘DBUtils’"><a href="#踩坑日记：ModuleNotFoundError-No-module-named-‘DBUtils’" class="headerlink" title="踩坑日记：ModuleNotFoundError: No module named ‘DBUtils’"></a>踩坑日记：ModuleNotFoundError: No module named ‘DBUtils’</h3><p>这里顺便记录一下一个非常常见、但又挺“迷惑”的报错：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ModuleNotFoundError: No module named &#x27;DBUtils&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>明明你已经写了：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install DBUtils</span><br></pre></td></tr></table></figure>
+
+<p>代码里也老老实实：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> DBUtils.PooledDB <span class="keyword">import</span> PooledDB</span><br></pre></td></tr></table></figure>
+
+<p>却还是报模块找不到，常见原因有几类：</p>
+<ul>
+<li><p><strong>安装到的环境不对</strong>：</p>
+<ul>
+<li>例如你在系统 Python 或某个虚拟环境里装的包，</li>
+<li>但运行 FastAPI 服务用的是另外一个 Python 解释器；</li>
+<li>用 <code>which python</code> &#x2F; <code>which uvicorn</code> 或 <code>pip show DBUtils</code> 检查一下是否同一个环境。</li>
+</ul>
+</li>
+<li><p><strong>pip 和 python 版本不匹配</strong>：</p>
+<ul>
+<li>例如 <code>python3</code> 在用，结果你执行的是 <code>pip</code>（对应 Python 2 或别的环境）；</li>
+<li>可以强制指定：<code>python3 -m pip install DBUtils</code> 或 <code>python -m pip install DBUtils</code>，确保装到当前 Python 里。</li>
+</ul>
+</li>
+<li><p><strong>容器 &#x2F; 线上环境漏装依赖</strong>：</p>
+<ul>
+<li>本地可以 import，是因为你本地装过；</li>
+<li>Docker 镜像或服务器没跑 <code>pip install DBUtils</code>，需要在 <code>requirements.txt</code> 或构建脚本里补上。</li>
+</ul>
+</li>
+<li><p><strong>不同版本&#x2F;发行版的包名和导入路径不一致</strong>：</p>
+<ul>
+<li>有些环境你会看到写法是：<code>from dbutils.pooled_db import PooledDB</code>（全小写 <code>dbutils</code>）；</li>
+<li>有些环境则是：<code>from DBUtils.PooledDB import PooledDB</code>（首字母大写的 <code>DBUtils</code>）；</li>
+<li>核心原则是：<strong>以 <code>pip show</code> 和官方文档为准</strong>，确认你当前安装的包名和推荐的导入路径。</li>
+</ul>
+</li>
+</ul>
+<p>我的经验是：</p>
+<ol>
+<li><p>先在启动 FastAPI 的同一个环境里执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -c <span class="string">&quot;import DBUtils; print(DBUtils.__file__)&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>或者：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -c <span class="string">&quot;from dbutils.pooled_db import PooledDB; print(PooledDB)&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>能跑通就说明模块和导入路径是对的；</p>
+</li>
+<li><p>如果这里都报 <code>ModuleNotFoundError</code>，那就 99% 是装错环境或没装，重新用 <code>python -m pip install DBUtils</code> 或对应的小写包名装一次通常就好了。</p>
+</li>
+</ol>
+<hr>
+<h2 id="四、封装-DBUtils-MySQL-连接池"><a href="#四、封装-DBUtils-MySQL-连接池" class="headerlink" title="四、封装 DBUtils MySQL 连接池"></a>四、封装 DBUtils MySQL 连接池</h2><p>先写一个单独的模块，比如 <code>db.py</code>，专门负责：</p>
+<ul>
+<li>创建&#x2F;关闭连接池；</li>
+<li>从连接池获取连接；</li>
+<li>和 FastAPI 生命周期集成。</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># db.py</span></span><br><span class="line"><span class="keyword">from</span> contextlib <span class="keyword">import</span> contextmanager</span><br><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> Generator</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> pymysql</span><br><span class="line"><span class="keyword">from</span> DBUtils.PooledDB <span class="keyword">import</span> PooledDB</span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MySQLPool</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;基于 DBUtils 的 MySQL 连接池封装。&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params"></span></span><br><span class="line"><span class="params">        self,</span></span><br><span class="line"><span class="params">        host: <span class="built_in">str</span>,</span></span><br><span class="line"><span class="params">        port: <span class="built_in">int</span>,</span></span><br><span class="line"><span class="params">        user: <span class="built_in">str</span>,</span></span><br><span class="line"><span class="params">        password: <span class="built_in">str</span>,</span></span><br><span class="line"><span class="params">        database: <span class="built_in">str</span>,</span></span><br><span class="line"><span class="params">        min_cached: <span class="built_in">int</span> = <span class="number">1</span>,</span></span><br><span class="line"><span class="params">        max_cached: <span class="built_in">int</span> = <span class="number">5</span>,</span></span><br><span class="line"><span class="params">        max_connections: <span class="built_in">int</span> = <span class="number">10</span>,</span></span><br><span class="line"><span class="params">        charset: <span class="built_in">str</span> = <span class="string">&quot;utf8mb4&quot;</span>,</span></span><br><span class="line"><span class="params">    </span>) -&gt; <span class="literal">None</span>:</span><br><span class="line">        <span class="variable language_">self</span>._pool: PooledDB | <span class="literal">None</span> = <span class="literal">None</span></span><br><span class="line">        <span class="variable language_">self</span>._pool_config = &#123;</span><br><span class="line">            <span class="string">&quot;creator&quot;</span>: pymysql,  <span class="comment"># 使用 pymysql 作为驱动</span></span><br><span class="line">            <span class="string">&quot;host&quot;</span>: host,</span><br><span class="line">            <span class="string">&quot;port&quot;</span>: port,</span><br><span class="line">            <span class="string">&quot;user&quot;</span>: user,</span><br><span class="line">            <span class="string">&quot;password&quot;</span>: password,</span><br><span class="line">            <span class="string">&quot;database&quot;</span>: database,</span><br><span class="line">            <span class="string">&quot;charset&quot;</span>: charset,</span><br><span class="line">            <span class="string">&quot;mincached&quot;</span>: min_cached,  <span class="comment"># 启动时创建的空闲连接数量</span></span><br><span class="line">            <span class="string">&quot;maxcached&quot;</span>: max_cached,  <span class="comment"># 连接池中最多缓存的连接数量</span></span><br><span class="line">            <span class="string">&quot;maxconnections&quot;</span>: max_connections,  <span class="comment"># 最大连接数</span></span><br><span class="line">            <span class="string">&quot;blocking&quot;</span>: <span class="literal">True</span>,  <span class="comment"># 连接数耗尽时是否阻塞等待</span></span><br><span class="line">            <span class="string">&quot;ping&quot;</span>: <span class="number">1</span>,  <span class="comment"># 检查连接是否可用</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">init_pool</span>(<span class="params">self</span>) -&gt; <span class="literal">None</span>:</span><br><span class="line">        <span class="string">&quot;&quot;&quot;在应用启动时创建连接池。&quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>._pool <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">            <span class="variable language_">self</span>._pool = PooledDB(**<span class="variable language_">self</span>._pool_config)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">close_pool</span>(<span class="params">self</span>) -&gt; <span class="literal">None</span>:</span><br><span class="line">        <span class="string">&quot;&quot;&quot;在应用关闭时清理连接池（如果需要）。&quot;&quot;&quot;</span></span><br><span class="line">        <span class="comment"># 对于 DBUtils，连接池自己会管理底层连接的释放，这里一般不用显式关闭。</span></span><br><span class="line">        <span class="variable language_">self</span>._pool = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line"><span class="meta">    @contextmanager</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">connection</span>(<span class="params">self</span>) -&gt; Generator[pymysql.connections.Connection, <span class="literal">None</span>, <span class="literal">None</span>]:</span><br><span class="line">        <span class="string">&quot;&quot;&quot;从连接池获取一个连接，使用 with 语法自动归还。&quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>._pool <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">            <span class="keyword">raise</span> RuntimeError(<span class="string">&quot;Connection pool is not initialized&quot;</span>)</span><br><span class="line"></span><br><span class="line">        conn = <span class="variable language_">self</span>._pool.connection()</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            <span class="keyword">yield</span> conn</span><br><span class="line">        <span class="keyword">finally</span>:</span><br><span class="line">            <span class="comment"># DBUtils 的 connection() 返回的是一个封装对象，</span></span><br><span class="line">            <span class="comment"># 调用 close() 实际上是把连接归还给连接池。</span></span><br><span class="line">            conn.close()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 可以根据实际环境调整这些配置</span></span><br><span class="line">mysql_pool = MySQLPool(</span><br><span class="line">    host=<span class="string">&quot;127.0.0.1&quot;</span>,</span><br><span class="line">    port=<span class="number">3306</span>,</span><br><span class="line">    user=<span class="string">&quot;root&quot;</span>,</span><br><span class="line">    password=<span class="string">&quot;password&quot;</span>,</span><br><span class="line">    database=<span class="string">&quot;mydb&quot;</span>,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">init_app</span>(<span class="params">app: FastAPI</span>) -&gt; <span class="literal">None</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;把连接池初始化逻辑挂到 FastAPI 生命周期上。&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="meta">    @app.on_event(<span class="params"><span class="string">&quot;startup&quot;</span></span>)</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_startup</span>() -&gt; <span class="literal">None</span>:  <span class="comment"># noqa: D401</span></span><br><span class="line">        <span class="comment"># 应用启动时创建连接池</span></span><br><span class="line">        mysql_pool.init_pool()</span><br><span class="line"></span><br><span class="line"><span class="meta">    @app.on_event(<span class="params"><span class="string">&quot;shutdown&quot;</span></span>)</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_shutdown</span>() -&gt; <span class="literal">None</span>:  <span class="comment"># noqa: D401</span></span><br><span class="line">        <span class="comment"># 应用关闭时清理连接池引用</span></span><br><span class="line">        mysql_pool.close_pool()</span><br></pre></td></tr></table></figure>
+
+<p>这里有几个关键点：</p>
+<ul>
+<li><strong><code>MySQLPool</code> 封装了 DBUtils 的 <code>PooledDB</code></strong>，避免在业务代码里直接操作底层细节；</li>
+<li>通过 <code>@contextmanager</code> 提供 <code>connection()</code> 方法：<ul>
+<li>可以 <code>with mysql_pool.connection() as conn:</code> 的写法；</li>
+<li><code>with</code> 代码块结束时，会自动把连接归还给连接池；</li>
+</ul>
+</li>
+<li>通过 <code>init_app(app)</code> 把连接池和 FastAPI 的 <code>startup</code> &#x2F; <code>shutdown</code> 生命周期绑定在一起。</li>
+</ul>
+<hr>
+<h2 id="五、在-FastAPI-中使用连接池执行-SQL"><a href="#五、在-FastAPI-中使用连接池执行-SQL" class="headerlink" title="五、在 FastAPI 中使用连接池执行 SQL"></a>五、在 FastAPI 中使用连接池执行 SQL</h2><p>接下来我们在 <code>main.py</code> 中：</p>
+<ul>
+<li>初始化应用；</li>
+<li>把连接池挂载到应用上；</li>
+<li>通过依赖注入获取连接；</li>
+<li>写几个简单的接口做演示。</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># main.py</span></span><br><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> Generator, <span class="type">List</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> Depends, FastAPI</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> db <span class="keyword">import</span> init_app, mysql_pool</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">app = FastAPI(title=<span class="string">&quot;FastAPI MySQL Pool Demo&quot;</span>)</span><br><span class="line">init_app(app)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_db_conn</span>() -&gt; Generator:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;FastAPI 依赖：从连接池获取一个连接。&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">with</span> mysql_pool.connection() <span class="keyword">as</span> conn:</span><br><span class="line">        <span class="keyword">yield</span> conn</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/users&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">list_users</span>(<span class="params">conn=Depends(<span class="params">get_db_conn</span>)</span>) -&gt; <span class="type">List</span>[<span class="built_in">dict</span>]:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;查询用户列表，演示 SELECT。&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">with</span> conn.cursor() <span class="keyword">as</span> cursor:</span><br><span class="line">        sql = <span class="string">&quot;SELECT id, username, email FROM users ORDER BY id DESC LIMIT 20&quot;</span></span><br><span class="line">        cursor.execute(sql)</span><br><span class="line">        rows = cursor.fetchall()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># pymysql 默认返回 tuple，可以配置 cursorclass=DictCursor 直接返回 dict</span></span><br><span class="line">    <span class="comment"># 这里演示手动转换</span></span><br><span class="line">    column_names = [desc[<span class="number">0</span>] <span class="keyword">for</span> desc <span class="keyword">in</span> cursor.description]</span><br><span class="line">    <span class="keyword">return</span> [<span class="built_in">dict</span>(<span class="built_in">zip</span>(column_names, row)) <span class="keyword">for</span> row <span class="keyword">in</span> rows]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.post(<span class="params"><span class="string">&quot;/users&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">create_user</span>(<span class="params">username: <span class="built_in">str</span>, email: <span class="built_in">str</span>, conn=Depends(<span class="params">get_db_conn</span>)</span>) -&gt; <span class="built_in">dict</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;新建用户，演示 INSERT。&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">with</span> conn.cursor() <span class="keyword">as</span> cursor:</span><br><span class="line">        sql = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        INSERT INTO users (username, email)</span></span><br><span class="line"><span class="string">        VALUES (%s, %s)</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        cursor.execute(sql, (username, email))</span><br><span class="line">        conn.commit()</span><br><span class="line"></span><br><span class="line">        user_id = cursor.lastrowid</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;id&quot;</span>: user_id, <span class="string">&quot;username&quot;</span>: username, <span class="string">&quot;email&quot;</span>: email&#125;</span><br></pre></td></tr></table></figure>
+
+<p>几点说明：</p>
+<ul>
+<li>这里我们直接用 <strong>同步视图函数</strong>（<code>def</code>），用起来和传统 Flask、Django 中的写法类似；</li>
+<li>通过 <code>Depends(get_db_conn)</code>，把「从连接池获取连接」这件事交给 FastAPI 管理；</li>
+<li>所有 SQL 都是手写：<ul>
+<li><strong>完全不依赖 SQLModel &#x2F; ORM</strong>；</li>
+<li>需要什么 SQL 就写什么，DBA 给的脚本可以直接复用；</li>
+</ul>
+</li>
+<li>使用参数化 SQL（<code>%s</code> + 参数元组）可以避免 SQL 注入风险。</li>
+</ul>
+<p>如果你希望 <code>cursor.fetchall()</code> 直接返回 dict，可以在创建连接池时配置：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pymysql.cursors <span class="keyword">import</span> DictCursor</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在 MySQLPool.__init__ 中的 _pool_config 加一项：</span></span><br><span class="line"><span class="string">&quot;cursorclass&quot;</span>: DictCursor,</span><br></pre></td></tr></table></figure>
+
+<p>这样在接口中就可以直接：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rows = cursor.fetchall()</span><br><span class="line"><span class="keyword">return</span> <span class="built_in">list</span>(rows)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、不用连接池时的常见写法对比"><a href="#六、不用连接池时的常见写法对比" class="headerlink" title="六、不用连接池时的常见写法对比"></a>六、不用连接池时的常见写法对比</h2><p>很多入门教程里会给出类似这样的示例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pymysql</span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/users&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">list_users</span>():</span><br><span class="line">    conn = pymysql.connect(</span><br><span class="line">        host=<span class="string">&quot;127.0.0.1&quot;</span>,</span><br><span class="line">        port=<span class="number">3306</span>,</span><br><span class="line">        user=<span class="string">&quot;root&quot;</span>,</span><br><span class="line">        password=<span class="string">&quot;password&quot;</span>,</span><br><span class="line">        database=<span class="string">&quot;mydb&quot;</span>,</span><br><span class="line">        charset=<span class="string">&quot;utf8mb4&quot;</span>,</span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">with</span> conn.cursor() <span class="keyword">as</span> cursor:</span><br><span class="line">            cursor.execute(<span class="string">&quot;SELECT id, username, email FROM users&quot;</span>)</span><br><span class="line">            rows = cursor.fetchall()</span><br><span class="line">        conn.commit()</span><br><span class="line">        <span class="keyword">return</span> rows</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        conn.close()</span><br></pre></td></tr></table></figure>
+
+<p>这种写法：</p>
+<ul>
+<li><strong>优点</strong>：入门门槛低，逻辑非常直观，适合 Demo 或脚本；</li>
+<li><strong>缺点</strong>：<ul>
+<li>每个请求都要 <code>connect</code> &#x2F; <code>close</code>，并发一上来，性能会明显下滑；</li>
+<li>一旦某个分支里忘记 <code>close</code>，连接泄漏就会变得非常难排查；</li>
+<li>连接数量完全依赖并发量，<strong>不可控</strong>。</li>
+</ul>
+</li>
+</ul>
+<p>而使用 DBUtils 连接池的写法：</p>
+<ul>
+<li>连接在 <strong>应用启动时一次性建立</strong> 一部分；</li>
+<li>并发请求只是 <strong>从池子里借&#x2F;还连接</strong>，不会无限制创建新连接；</li>
+<li>通过 <code>maxconnections</code> 等参数，可以和 DBA 商量一个合理的连接数上限；</li>
+<li>代码中用 <code>with</code> 管理连接和游标，资源释放变得更安全、可控。</li>
+</ul>
+<hr>
+<h2 id="七、实战中的一些优化建议"><a href="#七、实战中的一些优化建议" class="headerlink" title="七、实战中的一些优化建议"></a>七、实战中的一些优化建议</h2><p>最后再给几个在真实项目里经常会用到的小建议：</p>
+<ul>
+<li><p><strong>和 DBA 对齐连接数配置</strong>：</p>
+<ul>
+<li>例如 MySQL 最大连接数是 500，那你的应用不要单实例就跑出 400 个连接；</li>
+<li>通常会预留一部分给排查&#x2F;备份&#x2F;其它服务使用。</li>
+</ul>
+</li>
+<li><p><strong>合理设置连接池参数</strong>：</p>
+<ul>
+<li><code>mincached</code>：可以设置为 1～2，保证冷启动时就有可用连接；</li>
+<li><code>maxcached</code> &#x2F; <code>maxconnections</code>：结合 QPS 和 SQL 执行时间来调优；</li>
+<li><code>blocking=True</code>：当连接用完时阻塞等待，而不是直接抛错，避免突发流量时崩掉。</li>
+</ul>
+</li>
+<li><p><strong>统一封装数据库访问层</strong>：</p>
+<ul>
+<li>不要在每个接口里都手写 <code>cursor.execute</code> + SQL 拼接；</li>
+<li>可以抽象出一层 <code>repository</code> 或 <code>dao</code>，接口层只关心业务对象即可。</li>
+</ul>
+</li>
+<li><p><strong>监控和日志</strong>：</p>
+<ul>
+<li>记录每条重要 SQL 的耗时、影响行数；</li>
+<li>对慢 SQL 做专门日志，方便后期优化。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li><strong>不用 SQLModel，也完全可以在 FastAPI 中优雅地直连 MySQL</strong>，关键是：<ul>
+<li>使用 <code>DBUtils</code> 管理连接池；</li>
+<li>用 FastAPI 的依赖注入把「借连接&#x2F;还连接」这件事标准化。</li>
+</ul>
+</li>
+<li>方案的核心是：<ul>
+<li><strong><code>pymysql</code> + DBUtils 连接池 + 手写 SQL&#96;</strong>，兼顾灵活性和性能；</li>
+<li>应用启动时初始化连接池，请求阶段按需借用连接，应用关闭时释放资源。</li>
+</ul>
+</li>
+<li>真实项目里，建议再搭配一层轻量封装（DAO&#x2F;Repository），让业务代码只和“对象&#x2F;字典”打交道，把 SQL 细节收敛在数据访问层中。</li>
+</ul>
+<p>每日踩一坑，生活更轻松。</p>
+<p>本期分享就到这里啦，祝你在测开与后端之路上越走越稳，越走越远。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/about/">关于</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/tags/">标签</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/projects/">项目</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%80%E5%AE%9A%E8%A6%81%E4%B8%8A%E8%BF%9E%E6%8E%A5%E6%B1%A0%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">一、为什么一定要上连接池？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%96%B9%E6%A1%88%E6%95%B4%E4%BD%93%E8%AE%BE%E8%AE%A1"><span class="toc-number">3.</span> <span class="toc-text">二、方案整体设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%AE%89%E8%A3%85%E4%BE%9D%E8%B5%96"><span class="toc-number">4.</span> <span class="toc-text">三、安装依赖</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B8%A9%E5%9D%91%E6%97%A5%E8%AE%B0%EF%BC%9AModuleNotFoundError-No-module-named-%E2%80%98DBUtils%E2%80%99"><span class="toc-number">4.1.</span> <span class="toc-text">踩坑日记：ModuleNotFoundError: No module named ‘DBUtils’</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%B0%81%E8%A3%85-DBUtils-MySQL-%E8%BF%9E%E6%8E%A5%E6%B1%A0"><span class="toc-number">5.</span> <span class="toc-text">四、封装 DBUtils MySQL 连接池</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%9C%A8-FastAPI-%E4%B8%AD%E4%BD%BF%E7%94%A8%E8%BF%9E%E6%8E%A5%E6%B1%A0%E6%89%A7%E8%A1%8C-SQL"><span class="toc-number">6.</span> <span class="toc-text">五、在 FastAPI 中使用连接池执行 SQL</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E4%B8%8D%E7%94%A8%E8%BF%9E%E6%8E%A5%E6%B1%A0%E6%97%B6%E7%9A%84%E5%B8%B8%E8%A7%81%E5%86%99%E6%B3%95%E5%AF%B9%E6%AF%94"><span class="toc-number">7.</span> <span class="toc-text">六、不用连接池时的常见写法对比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%AE%9E%E6%88%98%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E4%BC%98%E5%8C%96%E5%BB%BA%E8%AE%AE"><span class="toc-number">8.</span> <span class="toc-text">七、实战中的一些优化建议</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">9.</span> <span class="toc-text">总结</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/&text=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/&title=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/&is_video=false&description=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库&body=Check out this article: https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/&title=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/&title=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/&title=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/&title=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/&name=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/&t=No.166-FastAPI 不用 SQLModel，如何用 DBUtils 直连 MySQL 数据库"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2025
+    Hope
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

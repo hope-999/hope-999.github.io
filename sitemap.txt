@@ -1,3 +1,4 @@
+https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/
 https://hope-999.github.io/2025/12/16/No-165-fastapi%E4%B8%AD%E6%A0%A1%E9%AA%8Ccrontab%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%A0%BC%E5%BC%8F/
 https://hope-999.github.io/2025/12/09/No-164-fastapi%E4%B8%AD%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E7%94%A8httpx%E8%BF%98%E6%98%AFrequests/
 https://hope-999.github.io/2025/12/03/No-163-fastapi%E4%B8%AD%E5%8A%A0%E8%BD%BD%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F/
@@ -27,6 +28,12 @@ https://hope-999.github.io/tags/fastapi/
 https://hope-999.github.io/tags/Celery/
 https://hope-999.github.io/tags/httpx/
 https://hope-999.github.io/tags/requests/
+https://hope-999.github.io/tags/FastAPI/
+https://hope-999.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/
+https://hope-999.github.io/tags/%E8%BF%9E%E6%8E%A5%E6%B1%A0/
+https://hope-999.github.io/tags/MySQL/
+https://hope-999.github.io/tags/DBUtils/
+https://hope-999.github.io/tags/%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91/
 https://hope-999.github.io/tags/crontab/
 https://hope-999.github.io/tags/pydantic/
 https://hope-999.github.io/tags/pytest/

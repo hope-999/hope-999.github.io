@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://hope-999.github.io/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/</loc>
+    
+    <lastmod>2025-12-18</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://hope-999.github.io/2025/12/16/No-165-fastapi%E4%B8%AD%E6%A0%A1%E9%AA%8Ccrontab%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%A0%BC%E5%BC%8F/</loc>
     
     <lastmod>2025-12-16</lastmod>
@@ -220,7 +229,7 @@
 
   <url>
     <loc>https://hope-999.github.io/</loc>
-    <lastmod>2025-12-16</lastmod>
+    <lastmod>2025-12-18</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -228,49 +237,91 @@
   
   <url>
     <loc>https://hope-999.github.io/tags/fastapi/</loc>
-    <lastmod>2025-12-16</lastmod>
+    <lastmod>2025-12-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://hope-999.github.io/tags/Celery/</loc>
-    <lastmod>2025-12-16</lastmod>
+    <lastmod>2025-12-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://hope-999.github.io/tags/httpx/</loc>
-    <lastmod>2025-12-16</lastmod>
+    <lastmod>2025-12-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://hope-999.github.io/tags/requests/</loc>
-    <lastmod>2025-12-16</lastmod>
+    <lastmod>2025-12-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://hope-999.github.io/tags/FastAPI/</loc>
+    <lastmod>2025-12-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://hope-999.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/</loc>
+    <lastmod>2025-12-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://hope-999.github.io/tags/%E8%BF%9E%E6%8E%A5%E6%B1%A0/</loc>
+    <lastmod>2025-12-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://hope-999.github.io/tags/MySQL/</loc>
+    <lastmod>2025-12-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://hope-999.github.io/tags/DBUtils/</loc>
+    <lastmod>2025-12-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://hope-999.github.io/tags/%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91/</loc>
+    <lastmod>2025-12-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://hope-999.github.io/tags/crontab/</loc>
-    <lastmod>2025-12-16</lastmod>
+    <lastmod>2025-12-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://hope-999.github.io/tags/pydantic/</loc>
-    <lastmod>2025-12-16</lastmod>
+    <lastmod>2025-12-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://hope-999.github.io/tags/pytest/</loc>
-    <lastmod>2025-12-16</lastmod>
+    <lastmod>2025-12-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
