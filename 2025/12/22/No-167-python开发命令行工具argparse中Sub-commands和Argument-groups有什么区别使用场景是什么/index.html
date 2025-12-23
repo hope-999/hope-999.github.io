@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="导读在使用 Python 的 argparse 模块开发命令行工具时，我们经常会遇到这样的场景：  工具功能越来越多，参数也越来越多，所有参数混在一起看起来很乱； 想要实现类似 git commit、git push 这样的子命令功能； 希望将相关的参数分组显示，让帮助信息更清晰。  这时候，argparse 提供了两个看起来很相似的功能：Sub-commands（子命令） 和 Argument-">
+<meta property="og:type" content="article">
+<meta property="og:title" content="No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么">
+<meta property="og:url" content="https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/index.html">
+<meta property="og:site_name" content="Hope 的博客">
+<meta property="og:description" content="导读在使用 Python 的 argparse 模块开发命令行工具时，我们经常会遇到这样的场景：  工具功能越来越多，参数也越来越多，所有参数混在一起看起来很乱； 想要实现类似 git commit、git push 这样的子命令功能； 希望将相关的参数分组显示，让帮助信息更清晰。  这时候，argparse 提供了两个看起来很相似的功能：Sub-commands（子命令） 和 Argument-">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-12-22T10:33:12.000Z">
+<meta property="article:modified_time" content="2025-12-22T10:46:45.372Z">
+<meta property="article:author" content="Hope">
+<meta property="article:tag" content="后端开发">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="argparse">
+<meta property="article:tag" content="命令行工具">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2025/12/18/No-166-fastapi%E4%B8%8D%E4%BD%BF%E7%94%A8sqlmodel%E8%BF%98%E5%8F%AF%E4%BB%A5%E6%80%8E%E4%B9%88%E7%9B%B4%E8%BF%9E%E6%95%B0%E6%8D%AE%E5%BA%93/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/&text=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/&title=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/&is_video=false&description=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么&body=Check out this article: https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/&title=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/&title=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/&title=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/&title=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/&name=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/&t=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF-Sub-commands%EF%BC%88%E5%AD%90%E5%91%BD%E4%BB%A4%EF%BC%89%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">一、什么是 Sub-commands（子命令）？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E4%BE%8B%E5%AD%90"><span class="toc-number">2.1.</span> <span class="toc-text">典型例子</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B"><span class="toc-number">2.2.</span> <span class="toc-text">代码示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF-Argument-groups%EF%BC%88%E5%8F%82%E6%95%B0%E7%BB%84%EF%BC%89%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">二、什么是 Argument-groups（参数组）？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E5%9C%BA%E6%99%AF"><span class="toc-number">3.1.</span> <span class="toc-text">典型场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B-1"><span class="toc-number">3.2.</span> <span class="toc-text">代码示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%A4%E8%80%85%E7%9A%84%E6%A0%B8%E5%BF%83%E5%8C%BA%E5%88%AB"><span class="toc-number">4.</span> <span class="toc-text">三、两者的核心区别</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%8A%9F%E8%83%BD%E5%AE%9A%E4%BD%8D%E4%B8%8D%E5%90%8C"><span class="toc-number">4.1.</span> <span class="toc-text">1. 功能定位不同</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E4%B8%8D%E5%90%8C"><span class="toc-number">4.2.</span> <span class="toc-text">2. 使用场景不同</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%BB%A3%E7%A0%81%E7%BB%93%E6%9E%84%E5%AF%B9%E6%AF%94"><span class="toc-number">4.3.</span> <span class="toc-text">3. 代码结构对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E4%B8%BE%E4%BE%8B"><span class="toc-number">5.</span> <span class="toc-text">四、实际应用场景举例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-1%EF%BC%9A%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7%EF%BC%88%E9%80%82%E5%90%88-Sub-commands%EF%BC%89"><span class="toc-number">5.1.</span> <span class="toc-text">场景 1：文件管理工具（适合 Sub-commands）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-2%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E5%B7%A5%E5%85%B7%EF%BC%88%E9%80%82%E5%90%88-Argument-groups%EF%BC%89"><span class="toc-number">5.2.</span> <span class="toc-text">场景 2：数据处理工具（适合 Argument-groups）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%8F%AF%E4%BB%A5%E5%90%8C%E6%97%B6%E4%BD%BF%E7%94%A8%E5%90%97%EF%BC%9F"><span class="toc-number">6.</span> <span class="toc-text">五、可以同时使用吗？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">7.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BF%AB%E9%80%9F%E5%86%B3%E7%AD%96%E6%A0%91"><span class="toc-number">7.2.</span> <span class="toc-text">快速决策树</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Hope</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-12-22T10:33:12.000Z" class="dt-published" itemprop="datePublished">2025-12-22</time>
+        
+        (Updated: <time datetime="2025-12-22T10:46:45.372Z" class="dt-updated" itemprop="dateModified">2025-12-22</time>)
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/Python/" rel="tag">Python</a>, <a class="p-category" href="/tags/argparse/" rel="tag">argparse</a>, <a class="p-category" href="/tags/%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91/" rel="tag">后端开发</a>, <a class="p-category" href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7/" rel="tag">命令行工具</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="导读"><a href="#导读" class="headerlink" title="导读"></a>导读</h2><p>在使用 Python 的 <code>argparse</code> 模块开发命令行工具时，我们经常会遇到这样的场景：</p>
+<ul>
+<li>工具功能越来越多，参数也越来越多，所有参数混在一起看起来很乱；</li>
+<li>想要实现类似 <code>git commit</code>、<code>git push</code> 这样的子命令功能；</li>
+<li>希望将相关的参数分组显示，让帮助信息更清晰。</li>
+</ul>
+<p>这时候，<code>argparse</code> 提供了两个看起来很相似的功能：<strong>Sub-commands（子命令）</strong> 和 <strong>Argument-groups（参数组）</strong>。</p>
+<p>很多同学会疑惑：这两个功能有什么区别？什么时候用哪个？</p>
+<p>这篇文章我们就来彻底搞懂这两个概念，让你在开发命令行工具时不再纠结。</p>
+<hr>
+<h2 id="一、什么是-Sub-commands（子命令）？"><a href="#一、什么是-Sub-commands（子命令）？" class="headerlink" title="一、什么是 Sub-commands（子命令）？"></a>一、什么是 Sub-commands（子命令）？</h2><p><strong>Sub-commands</strong> 就像 <code>git</code> 命令那样，一个主命令下可以有多个子命令，每个子命令有自己独立的参数。</p>
+<h3 id="典型例子"><a href="#典型例子" class="headerlink" title="典型例子"></a>典型例子</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># git 就是典型的子命令模式</span></span><br><span class="line">git commit -m <span class="string">&quot;message&quot;</span></span><br><span class="line">git push origin main</span><br><span class="line">git pull origin main</span><br></pre></td></tr></table></figure>
+
+<p>每个子命令（<code>commit</code>、<code>push</code>、<code>pull</code>）都是独立的，有自己的参数和逻辑。</p>
+<h3 id="代码示例"><a href="#代码示例" class="headerlink" title="代码示例"></a>代码示例</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    parser = argparse.ArgumentParser(description=<span class="string">&#x27;文件管理工具&#x27;</span>)</span><br><span class="line">    subparsers = parser.add_subparsers(dest=<span class="string">&#x27;command&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;可用命令&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 创建 upload 子命令</span></span><br><span class="line">    upload_parser = subparsers.add_parser(<span class="string">&#x27;upload&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;上传文件&#x27;</span>)</span><br><span class="line">    upload_parser.add_argument(<span class="string">&#x27;--file&#x27;</span>, required=<span class="literal">True</span>, <span class="built_in">help</span>=<span class="string">&#x27;要上传的文件路径&#x27;</span>)</span><br><span class="line">    upload_parser.add_argument(<span class="string">&#x27;--bucket&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;存储桶名称&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 创建 download 子命令</span></span><br><span class="line">    download_parser = subparsers.add_parser(<span class="string">&#x27;download&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;下载文件&#x27;</span>)</span><br><span class="line">    download_parser.add_argument(<span class="string">&#x27;--file&#x27;</span>, required=<span class="literal">True</span>, <span class="built_in">help</span>=<span class="string">&#x27;要下载的文件名&#x27;</span>)</span><br><span class="line">    download_parser.add_argument(<span class="string">&#x27;--output&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;保存路径&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    args = parser.parse_args()</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> args.command == <span class="string">&#x27;upload&#x27;</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;上传文件: <span class="subst">&#123;args.file&#125;</span> 到 <span class="subst">&#123;args.bucket&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="keyword">elif</span> args.command == <span class="string">&#x27;download&#x27;</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;下载文件: <span class="subst">&#123;args.file&#125;</span> 到 <span class="subst">&#123;args.output&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+
+<p><strong>使用效果：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 上传文件</span></span><br><span class="line">python tool.py upload --file data.txt --bucket my-bucket</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载文件</span></span><br><span class="line">python tool.py download --file data.txt --output ./local/</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="二、什么是-Argument-groups（参数组）？"><a href="#二、什么是-Argument-groups（参数组）？" class="headerlink" title="二、什么是 Argument-groups（参数组）？"></a>二、什么是 Argument-groups（参数组）？</h2><p><strong>Argument-groups</strong> 是用来<strong>组织和管理参数</strong>的，它不会改变命令的结构，只是把相关的参数分组显示，让帮助信息更清晰。</p>
+<h3 id="典型场景"><a href="#典型场景" class="headerlink" title="典型场景"></a>典型场景</h3><p>当你有很多参数时，可以把它们按功能分组：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 所有参数都在一个命令下，但分组显示</span></span><br><span class="line">python tool.py --input file.txt --output <span class="built_in">dir</span>/ --verbose --debug</span><br></pre></td></tr></table></figure>
+
+<h3 id="代码示例-1"><a href="#代码示例-1" class="headerlink" title="代码示例"></a>代码示例</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    parser = argparse.ArgumentParser(description=<span class="string">&#x27;数据处理工具&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 创建参数组</span></span><br><span class="line">    input_group = parser.add_argument_group(<span class="string">&#x27;输入选项&#x27;</span>)</span><br><span class="line">    input_group.add_argument(<span class="string">&#x27;--input&#x27;</span>, required=<span class="literal">True</span>, <span class="built_in">help</span>=<span class="string">&#x27;输入文件路径&#x27;</span>)</span><br><span class="line">    input_group.add_argument(<span class="string">&#x27;--format&#x27;</span>, choices=[<span class="string">&#x27;json&#x27;</span>, <span class="string">&#x27;csv&#x27;</span>], <span class="built_in">help</span>=<span class="string">&#x27;输入格式&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    output_group = parser.add_argument_group(<span class="string">&#x27;输出选项&#x27;</span>)</span><br><span class="line">    output_group.add_argument(<span class="string">&#x27;--output&#x27;</span>, required=<span class="literal">True</span>, <span class="built_in">help</span>=<span class="string">&#x27;输出目录&#x27;</span>)</span><br><span class="line">    output_group.add_argument(<span class="string">&#x27;--overwrite&#x27;</span>, action=<span class="string">&#x27;store_true&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;是否覆盖已存在文件&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    debug_group = parser.add_argument_group(<span class="string">&#x27;调试选项&#x27;</span>)</span><br><span class="line">    debug_group.add_argument(<span class="string">&#x27;--verbose&#x27;</span>, action=<span class="string">&#x27;store_true&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;详细输出&#x27;</span>)</span><br><span class="line">    debug_group.add_argument(<span class="string">&#x27;--debug&#x27;</span>, action=<span class="string">&#x27;store_true&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;调试模式&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    args = parser.parse_args()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;处理文件: <span class="subst">&#123;args.<span class="built_in">input</span>&#125;</span> -&gt; <span class="subst">&#123;args.output&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+
+<p><strong>使用效果：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看帮助信息，参数会按组显示</span></span><br><span class="line">python tool.py --<span class="built_in">help</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出：</span></span><br><span class="line"><span class="comment"># 输入选项:</span></span><br><span class="line"><span class="comment">#   --input INPUT        输入文件路径</span></span><br><span class="line"><span class="comment">#   --format &#123;json,csv&#125;  输入格式</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># 输出选项:</span></span><br><span class="line"><span class="comment">#   --output OUTPUT      输出目录</span></span><br><span class="line"><span class="comment">#   --overwrite          是否覆盖已存在文件</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># 调试选项:</span></span><br><span class="line"><span class="comment">#   --verbose            详细输出</span></span><br><span class="line"><span class="comment">#   --debug              调试模式</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、两者的核心区别"><a href="#三、两者的核心区别" class="headerlink" title="三、两者的核心区别"></a>三、两者的核心区别</h2><h3 id="1-功能定位不同"><a href="#1-功能定位不同" class="headerlink" title="1. 功能定位不同"></a>1. <strong>功能定位不同</strong></h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>Sub-commands</th>
+<th>Argument-groups</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>作用</strong></td>
+<td>创建多个独立的命令</td>
+<td>组织参数显示</td>
+</tr>
+<tr>
+<td><strong>命令结构</strong></td>
+<td>改变命令结构（主命令 + 子命令）</td>
+<td>不改变命令结构</td>
+</tr>
+<tr>
+<td><strong>参数隔离</strong></td>
+<td>每个子命令的参数完全独立</td>
+<td>所有参数都在同一命令下</td>
+</tr>
+</tbody></table>
+<h3 id="2-使用场景不同"><a href="#2-使用场景不同" class="headerlink" title="2. 使用场景不同"></a>2. <strong>使用场景不同</strong></h3><p><strong>Sub-commands 适用于：</strong></p>
+<ul>
+<li>✅ 工具功能模块化，每个功能相对独立</li>
+<li>✅ 不同功能需要的参数差异很大</li>
+<li>✅ 希望命令结构清晰，类似 <code>git</code>、<code>docker</code> 这样的工具</li>
+<li>✅ 不同子命令可能有完全不同的逻辑</li>
+</ul>
+<p><strong>Argument-groups 适用于：</strong></p>
+<ul>
+<li>✅ 所有参数都属于同一个命令</li>
+<li>✅ 参数很多，需要分类展示让帮助信息更清晰</li>
+<li>✅ 参数之间有逻辑关联，但都在同一个操作下使用</li>
+<li>✅ 希望帮助信息更易读，但不需要改变命令结构</li>
+</ul>
+<h3 id="3-代码结构对比"><a href="#3-代码结构对比" class="headerlink" title="3. 代码结构对比"></a>3. <strong>代码结构对比</strong></h3><p><strong>Sub-commands 结构：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">parser = argparse.ArgumentParser()</span><br><span class="line">subparsers = parser.add_subparsers()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 每个子命令都是独立的 parser</span></span><br><span class="line">cmd1_parser = subparsers.add_parser(<span class="string">&#x27;cmd1&#x27;</span>)</span><br><span class="line">cmd1_parser.add_argument(<span class="string">&#x27;--arg1&#x27;</span>)</span><br><span class="line"></span><br><span class="line">cmd2_parser = subparsers.add_parser(<span class="string">&#x27;cmd2&#x27;</span>)</span><br><span class="line">cmd2_parser.add_argument(<span class="string">&#x27;--arg2&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><strong>Argument-groups 结构：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">parser = argparse.ArgumentParser()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 所有参数都在同一个 parser 下，只是分组显示</span></span><br><span class="line">group1 = parser.add_argument_group(<span class="string">&#x27;组1&#x27;</span>)</span><br><span class="line">group1.add_argument(<span class="string">&#x27;--arg1&#x27;</span>)</span><br><span class="line"></span><br><span class="line">group2 = parser.add_argument_group(<span class="string">&#x27;组2&#x27;</span>)</span><br><span class="line">group2.add_argument(<span class="string">&#x27;--arg2&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、实际应用场景举例"><a href="#四、实际应用场景举例" class="headerlink" title="四、实际应用场景举例"></a>四、实际应用场景举例</h2><h3 id="场景-1：文件管理工具（适合-Sub-commands）"><a href="#场景-1：文件管理工具（适合-Sub-commands）" class="headerlink" title="场景 1：文件管理工具（适合 Sub-commands）"></a>场景 1：文件管理工具（适合 Sub-commands）</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    parser = argparse.ArgumentParser(description=<span class="string">&#x27;文件管理工具&#x27;</span>)</span><br><span class="line">    subparsers = parser.add_subparsers(dest=<span class="string">&#x27;command&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># upload 子命令</span></span><br><span class="line">    upload = subparsers.add_parser(<span class="string">&#x27;upload&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;上传文件&#x27;</span>)</span><br><span class="line">    upload.add_argument(<span class="string">&#x27;file&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;文件路径&#x27;</span>)</span><br><span class="line">    upload.add_argument(<span class="string">&#x27;--bucket&#x27;</span>, required=<span class="literal">True</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># download 子命令</span></span><br><span class="line">    download = subparsers.add_parser(<span class="string">&#x27;download&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;下载文件&#x27;</span>)</span><br><span class="line">    download.add_argument(<span class="string">&#x27;file&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;文件名&#x27;</span>)</span><br><span class="line">    download.add_argument(<span class="string">&#x27;--output&#x27;</span>, default=<span class="string">&#x27;./&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># delete 子命令</span></span><br><span class="line">    delete = subparsers.add_parser(<span class="string">&#x27;delete&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;删除文件&#x27;</span>)</span><br><span class="line">    delete.add_argument(<span class="string">&#x27;file&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;文件名&#x27;</span>)</span><br><span class="line">    delete.add_argument(<span class="string">&#x27;--force&#x27;</span>, action=<span class="string">&#x27;store_true&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    args = parser.parse_args()</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> args.command == <span class="string">&#x27;upload&#x27;</span>:</span><br><span class="line">        handle_upload(args.file, args.bucket)</span><br><span class="line">    <span class="keyword">elif</span> args.command == <span class="string">&#x27;download&#x27;</span>:</span><br><span class="line">        handle_download(args.file, args.output)</span><br><span class="line">    <span class="keyword">elif</span> args.command == <span class="string">&#x27;delete&#x27;</span>:</span><br><span class="line">        handle_delete(args.file, args.force)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+
+<p><strong>使用：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">python tool.py upload data.txt --bucket my-bucket</span><br><span class="line">python tool.py download data.txt --output ./files/</span><br><span class="line">python tool.py delete data.txt --force</span><br></pre></td></tr></table></figure>
+
+<h3 id="场景-2：数据处理工具（适合-Argument-groups）"><a href="#场景-2：数据处理工具（适合-Argument-groups）" class="headerlink" title="场景 2：数据处理工具（适合 Argument-groups）"></a>场景 2：数据处理工具（适合 Argument-groups）</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    parser = argparse.ArgumentParser(description=<span class="string">&#x27;数据处理工具&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 输入参数组</span></span><br><span class="line">    input_group = parser.add_argument_group(<span class="string">&#x27;输入配置&#x27;</span>)</span><br><span class="line">    input_group.add_argument(<span class="string">&#x27;--input-file&#x27;</span>, required=<span class="literal">True</span>, <span class="built_in">help</span>=<span class="string">&#x27;输入文件&#x27;</span>)</span><br><span class="line">    input_group.add_argument(<span class="string">&#x27;--input-format&#x27;</span>, choices=[<span class="string">&#x27;json&#x27;</span>, <span class="string">&#x27;csv&#x27;</span>, <span class="string">&#x27;xml&#x27;</span>])</span><br><span class="line">    input_group.add_argument(<span class="string">&#x27;--encoding&#x27;</span>, default=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 处理参数组</span></span><br><span class="line">    process_group = parser.add_argument_group(<span class="string">&#x27;处理配置&#x27;</span>)</span><br><span class="line">    process_group.add_argument(<span class="string">&#x27;--filter&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;过滤条件&#x27;</span>)</span><br><span class="line">    process_group.add_argument(<span class="string">&#x27;--sort&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;排序字段&#x27;</span>)</span><br><span class="line">    process_group.add_argument(<span class="string">&#x27;--limit&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">int</span>, <span class="built_in">help</span>=<span class="string">&#x27;限制条数&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 输出参数组</span></span><br><span class="line">    output_group = parser.add_argument_group(<span class="string">&#x27;输出配置&#x27;</span>)</span><br><span class="line">    output_group.add_argument(<span class="string">&#x27;--output-file&#x27;</span>, required=<span class="literal">True</span>)</span><br><span class="line">    output_group.add_argument(<span class="string">&#x27;--output-format&#x27;</span>, choices=[<span class="string">&#x27;json&#x27;</span>, <span class="string">&#x27;csv&#x27;</span>])</span><br><span class="line">    output_group.add_argument(<span class="string">&#x27;--pretty&#x27;</span>, action=<span class="string">&#x27;store_true&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    args = parser.parse_args()</span><br><span class="line">    process_data(args)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+
+<p><strong>使用：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">python tool.py \</span><br><span class="line">  --input-file data.csv --input-format csv \</span><br><span class="line">  --filter <span class="string">&quot;age &gt; 18&quot;</span> --<span class="built_in">sort</span> name --<span class="built_in">limit</span> 100 \</span><br><span class="line">  --output-file result.json --output-format json --pretty</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="五、可以同时使用吗？"><a href="#五、可以同时使用吗？" class="headerlink" title="五、可以同时使用吗？"></a>五、可以同时使用吗？</h2><p><strong>可以！</strong> 两者并不冲突，可以在子命令内部再使用参数组。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    parser = argparse.ArgumentParser(description=<span class="string">&#x27;高级工具&#x27;</span>)</span><br><span class="line">    subparsers = parser.add_subparsers(dest=<span class="string">&#x27;command&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># process 子命令，内部使用参数组</span></span><br><span class="line">    process_parser = subparsers.add_parser(<span class="string">&#x27;process&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;处理数据&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    input_group = process_parser.add_argument_group(<span class="string">&#x27;输入选项&#x27;</span>)</span><br><span class="line">    input_group.add_argument(<span class="string">&#x27;--input&#x27;</span>, required=<span class="literal">True</span>)</span><br><span class="line">    input_group.add_argument(<span class="string">&#x27;--format&#x27;</span>, choices=[<span class="string">&#x27;json&#x27;</span>, <span class="string">&#x27;csv&#x27;</span>])</span><br><span class="line">    </span><br><span class="line">    output_group = process_parser.add_argument_group(<span class="string">&#x27;输出选项&#x27;</span>)</span><br><span class="line">    output_group.add_argument(<span class="string">&#x27;--output&#x27;</span>, required=<span class="literal">True</span>)</span><br><span class="line">    output_group.add_argument(<span class="string">&#x27;--overwrite&#x27;</span>, action=<span class="string">&#x27;store_true&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    args = parser.parse_args()</span><br><span class="line">    <span class="comment"># ...</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="核心要点"><a href="#核心要点" class="headerlink" title="核心要点"></a>核心要点</h3><ol>
+<li><p><strong>Sub-commands（子命令）</strong>：</p>
+<ul>
+<li>用于创建多个独立的命令</li>
+<li>改变命令结构：<code>主命令 子命令 [参数]</code></li>
+<li>适合功能模块化、参数差异大的场景</li>
+<li>典型例子：<code>git commit</code>、<code>docker run</code></li>
+</ul>
+</li>
+<li><p><strong>Argument-groups（参数组）</strong>：</p>
+<ul>
+<li>用于组织和管理参数显示</li>
+<li>不改变命令结构，所有参数在同一命令下</li>
+<li>适合参数多、需要分类展示的场景</li>
+<li>主要作用是让帮助信息更清晰</li>
+</ul>
+</li>
+<li><p><strong>选择建议</strong>：</p>
+<ul>
+<li>功能独立、参数差异大 → 用 <strong>Sub-commands</strong></li>
+<li>参数多、需要分类展示 → 用 <strong>Argument-groups</strong></li>
+<li>两者可以结合使用</li>
+</ul>
+</li>
+</ol>
+<h3 id="快速决策树"><a href="#快速决策树" class="headerlink" title="快速决策树"></a>快速决策树</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">需要多个独立命令？</span><br><span class="line">├─ 是 → 使用 Sub-commands</span><br><span class="line">└─ 否 → 参数很多需要分组显示？</span><br><span class="line">    ├─ 是 → 使用 Argument-groups</span><br><span class="line">    └─ 否 → 直接用普通参数即可</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p>每日踩一坑，生活更轻松。</p>
+<p>本期分享就到这里啦，祝你在测开与后端之路上越走越稳，越走越远。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/about/">关于</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/tags/">标签</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/projects/">项目</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF-Sub-commands%EF%BC%88%E5%AD%90%E5%91%BD%E4%BB%A4%EF%BC%89%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">一、什么是 Sub-commands（子命令）？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E4%BE%8B%E5%AD%90"><span class="toc-number">2.1.</span> <span class="toc-text">典型例子</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B"><span class="toc-number">2.2.</span> <span class="toc-text">代码示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF-Argument-groups%EF%BC%88%E5%8F%82%E6%95%B0%E7%BB%84%EF%BC%89%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">二、什么是 Argument-groups（参数组）？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E5%9C%BA%E6%99%AF"><span class="toc-number">3.1.</span> <span class="toc-text">典型场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B-1"><span class="toc-number">3.2.</span> <span class="toc-text">代码示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%A4%E8%80%85%E7%9A%84%E6%A0%B8%E5%BF%83%E5%8C%BA%E5%88%AB"><span class="toc-number">4.</span> <span class="toc-text">三、两者的核心区别</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%8A%9F%E8%83%BD%E5%AE%9A%E4%BD%8D%E4%B8%8D%E5%90%8C"><span class="toc-number">4.1.</span> <span class="toc-text">1. 功能定位不同</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E4%B8%8D%E5%90%8C"><span class="toc-number">4.2.</span> <span class="toc-text">2. 使用场景不同</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%BB%A3%E7%A0%81%E7%BB%93%E6%9E%84%E5%AF%B9%E6%AF%94"><span class="toc-number">4.3.</span> <span class="toc-text">3. 代码结构对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E4%B8%BE%E4%BE%8B"><span class="toc-number">5.</span> <span class="toc-text">四、实际应用场景举例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-1%EF%BC%9A%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7%EF%BC%88%E9%80%82%E5%90%88-Sub-commands%EF%BC%89"><span class="toc-number">5.1.</span> <span class="toc-text">场景 1：文件管理工具（适合 Sub-commands）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-2%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E5%B7%A5%E5%85%B7%EF%BC%88%E9%80%82%E5%90%88-Argument-groups%EF%BC%89"><span class="toc-number">5.2.</span> <span class="toc-text">场景 2：数据处理工具（适合 Argument-groups）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%8F%AF%E4%BB%A5%E5%90%8C%E6%97%B6%E4%BD%BF%E7%94%A8%E5%90%97%EF%BC%9F"><span class="toc-number">6.</span> <span class="toc-text">五、可以同时使用吗？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">7.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BF%AB%E9%80%9F%E5%86%B3%E7%AD%96%E6%A0%91"><span class="toc-number">7.2.</span> <span class="toc-text">快速决策树</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/&text=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/&title=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/&is_video=false&description=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么&body=Check out this article: https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/&title=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/&title=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/&title=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/&title=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/&name=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2025/12/22/No-167-python%E5%BC%80%E5%8F%91%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7argparse%E4%B8%ADSub-commands%E5%92%8CArgument-groups%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88/&t=No.167-python开发命令行工具argparse中Sub-commands和Argument-groups有什么区别使用场景是什么"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2025
+    Hope
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
