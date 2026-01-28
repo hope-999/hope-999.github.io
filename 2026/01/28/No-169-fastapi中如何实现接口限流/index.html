@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="导读在 fastapi 项目中，接口限流是一个非常重要的话题。 想象一下，如果没有限流，一个恶意用户可以在短时间内发起成千上万次请求，把你的服务打垮。或者你的某个不小心写了死循环的接口，把数据库连接池耗尽。 这篇文章将介绍几种在 fastapi 中实现接口限流的方法。 什么是接口限流？接口限流就是限制客户端在单位时间内可以发起的请求次数。常见的限流策略包括：  固定窗口算法：在固定时间窗口内限制请">
+<meta property="og:type" content="article">
+<meta property="og:title" content="No.169-fastapi中如何实现接口限流">
+<meta property="og:url" content="https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/index.html">
+<meta property="og:site_name" content="Hope 的博客">
+<meta property="og:description" content="导读在 fastapi 项目中，接口限流是一个非常重要的话题。 想象一下，如果没有限流，一个恶意用户可以在短时间内发起成千上万次请求，把你的服务打垮。或者你的某个不小心写了死循环的接口，把数据库连接池耗尽。 这篇文章将介绍几种在 fastapi 中实现接口限流的方法。 什么是接口限流？接口限流就是限制客户端在单位时间内可以发起的请求次数。常见的限流策略包括：  固定窗口算法：在固定时间窗口内限制请">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-01-28T10:10:00.000Z">
+<meta property="article:modified_time" content="2026-01-28T10:32:51.622Z">
+<meta property="article:author" content="Hope">
+<meta property="article:tag" content="fastapi">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>No.169-fastapi中如何实现接口限流</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2025/12/28/No-168-fastapi%E4%B8%ADOpenAPI-Webhooks%E6%80%8E%E4%B9%88%E5%81%9A/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/&text=No.169-fastapi中如何实现接口限流"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/&title=No.169-fastapi中如何实现接口限流"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/&is_video=false&description=No.169-fastapi中如何实现接口限流"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.169-fastapi中如何实现接口限流&body=Check out this article: https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/&title=No.169-fastapi中如何实现接口限流"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/&title=No.169-fastapi中如何实现接口限流"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/&title=No.169-fastapi中如何实现接口限流"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/&title=No.169-fastapi中如何实现接口限流"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/&name=No.169-fastapi中如何实现接口限流&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/&t=No.169-fastapi中如何实现接口限流"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">什么是接口限流？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%951%EF%BC%9A%E4%BD%BF%E7%94%A8-slowapi%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">方法1：使用 slowapi（推荐）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%952%EF%BC%9A%E4%BD%BF%E7%94%A8-fastapi-limiter"><span class="toc-number">1.3.</span> <span class="toc-text">方法2：使用 fastapi-limiter</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%953%EF%BC%9A%E8%87%AA%E5%AE%9A%E4%B9%89%E5%9F%BA%E4%BA%8E%E5%86%85%E5%AD%98%E7%9A%84%E9%99%90%E6%B5%81"><span class="toc-number">1.4.</span> <span class="toc-text">方法3：自定义基于内存的限流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%954%EF%BC%9A%E4%BD%BF%E7%94%A8%E8%A3%85%E9%A5%B0%E5%99%A8%E7%B1%BB%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.5.</span> <span class="toc-text">方法4：使用装饰器类实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8D%E5%90%8C%E5%9C%BA%E6%99%AF%E7%9A%84%E9%99%90%E6%B5%81%E7%AD%96%E7%95%A5"><span class="toc-number">1.6.</span> <span class="toc-text">不同场景的限流策略</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%A8%E5%B1%80%E9%99%90%E6%B5%81"><span class="toc-number">1.6.1.</span> <span class="toc-text">全局限流</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B7%AF%E7%94%B1%E7%BA%A7%E9%99%90%E6%B5%81"><span class="toc-number">1.6.2.</span> <span class="toc-text">路由级限流</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%94%A8%E6%88%B7%E7%BA%A7%E9%99%90%E6%B5%81%EF%BC%88%E5%B7%AE%E5%BC%82%E5%8C%96%EF%BC%89"><span class="toc-number">1.6.3.</span> <span class="toc-text">用户级限流（差异化）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.7.</span> <span class="toc-text">生产环境建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E9%99%90%E6%B5%81%E5%8A%9F%E8%83%BD"><span class="toc-number">1.8.</span> <span class="toc-text">测试限流功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.9.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        No.169-fastapi中如何实现接口限流
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Hope</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2026-01-28T10:10:00.000Z" class="dt-published" itemprop="datePublished">2026-01-28</time>
+        
+        (Updated: <time datetime="2026-01-28T10:32:51.622Z" class="dt-updated" itemprop="dateModified">2026-01-28</time>)
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/fastapi/" rel="tag">fastapi</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="导读"><a href="#导读" class="headerlink" title="导读"></a>导读</h2><p>在 <code>fastapi</code> 项目中，接口限流是一个非常重要的话题。</p>
+<p>想象一下，如果没有限流，一个恶意用户可以在短时间内发起成千上万次请求，把你的服务打垮。或者你的某个不小心写了死循环的接口，把数据库连接池耗尽。</p>
+<p>这篇文章将介绍几种在 <code>fastapi</code> 中实现接口限流的方法。</p>
+<h3 id="什么是接口限流？"><a href="#什么是接口限流？" class="headerlink" title="什么是接口限流？"></a>什么是接口限流？</h3><p>接口限流就是限制客户端在单位时间内可以发起的请求次数。常见的限流策略包括：</p>
+<ul>
+<li><strong>固定窗口算法</strong>：在固定时间窗口内限制请求次数</li>
+<li><strong>滑动窗口算法</strong>：更精确的时间窗口控制</li>
+<li><strong>令牌桶算法</strong>：以固定速率产生令牌，请求消耗令牌</li>
+<li><strong>漏桶算法</strong>：以固定速率处理请求</li>
+</ul>
+<h3 id="方法1：使用-slowapi（推荐）"><a href="#方法1：使用-slowapi（推荐）" class="headerlink" title="方法1：使用 slowapi（推荐）"></a>方法1：使用 slowapi（推荐）</h3><p><code>slowapi</code> 是一个专门为 FastAPI 设计的限流库，简单易用。</p>
+<p>安装：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install slowapi</span><br></pre></td></tr></table></figure>
+
+<p>基础用法：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, Request</span><br><span class="line"><span class="keyword">from</span> slowapi <span class="keyword">import</span> Limiter, _rate_limit_exceeded_handler</span><br><span class="line"><span class="keyword">from</span> slowapi.util <span class="keyword">import</span> get_remote_address</span><br><span class="line"><span class="keyword">from</span> slowapi.errors <span class="keyword">import</span> RateLimitExceeded</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化限流器</span></span><br><span class="line">limiter = Limiter(key_func=get_remote_address)</span><br><span class="line">app.state.limiter = limiter</span><br><span class="line">app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/api/test&quot;</span></span>)</span></span><br><span class="line"><span class="meta">@limiter.limit(<span class="params"><span class="string">&quot;5/minute&quot;</span></span>)  </span><span class="comment"># 每分钟最多5次请求</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">test_endpoint</span>(<span class="params">request: Request</span>):</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;Hello&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>说明：</p>
+<ul>
+<li><code>key_func=get_remote_address</code> 表示按 IP 地址限流</li>
+<li><code>@limiter.limit(&quot;5/minute&quot;)</code> 表示每分钟最多5次请求</li>
+<li>超过限制时自动返回 429 状态码</li>
+</ul>
+<p>按用户ID限流：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> Depends, Request</span><br><span class="line"><span class="keyword">from</span> slowapi <span class="keyword">import</span> Limiter</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_user_id</span>(<span class="params">request: Request</span>):</span><br><span class="line">    <span class="comment"># 从JWT token或其他方式获取用户ID</span></span><br><span class="line">    user_id = request.headers.get(<span class="string">&quot;X-User-ID&quot;</span>, <span class="string">&quot;anonymous&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> user_id</span><br><span class="line"></span><br><span class="line">limiter = Limiter(key_func=get_user_id)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/api/user-info&quot;</span></span>)</span></span><br><span class="line"><span class="meta">@limiter.limit(<span class="params"><span class="string">&quot;100/hour&quot;</span></span>)  </span><span class="comment"># 每小时最多100次请求</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">user_info</span>(<span class="params">request: Request</span>):</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;user_id&quot;</span>: get_user_id(request)&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="方法2：使用-fastapi-limiter"><a href="#方法2：使用-fastapi-limiter" class="headerlink" title="方法2：使用 fastapi-limiter"></a>方法2：使用 fastapi-limiter</h3><p>另一个流行的限流库是 <code>fastapi-limiter</code>。</p>
+<p>安装：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install fastapi-limiter</span><br></pre></td></tr></table></figure>
+
+<p>使用 Redis 作为存储：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, Depends, Request</span><br><span class="line"><span class="keyword">from</span> fastapi_limiter <span class="keyword">import</span> FastAPILimiter</span><br><span class="line"><span class="keyword">from</span> fastapi_limiter.depends <span class="keyword">import</span> RateLimiter</span><br><span class="line"><span class="keyword">import</span> redis</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化Redis连接</span></span><br><span class="line"><span class="meta">@app.on_event(<span class="params"><span class="string">&quot;startup&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">startup</span>():</span><br><span class="line">    redis_connection = redis.from_url(<span class="string">&quot;redis://localhost:6379&quot;</span>)</span><br><span class="line">    <span class="keyword">await</span> FastAPILimiter.init(redis=redis_connection)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/limited&quot;</span></span>)</span></span><br><span class="line"><span class="meta">@RateLimiter(<span class="params">times=<span class="number">2</span>, seconds=<span class="number">5</span></span>)  </span><span class="comment"># 5秒内最多2次请求</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">limited_route</span>(<span class="params">request: Request</span>):</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;success&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>说明：</p>
+<ul>
+<li>使用 Redis 可以在多实例环境下共享限流状态</li>
+<li><code>times=2, seconds=5</code> 表示5秒内最多2次请求</li>
+</ul>
+<h3 id="方法3：自定义基于内存的限流"><a href="#方法3：自定义基于内存的限流" class="headerlink" title="方法3：自定义基于内存的限流"></a>方法3：自定义基于内存的限流</h3><p>如果不想引入额外依赖，可以自己实现简单的限流器：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, Request, HTTPException</span><br><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> defaultdict</span><br><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> datetime, timedelta</span><br><span class="line"><span class="keyword">import</span> asyncio</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 存储请求记录：&#123;ip: [(timestamp1, timestamp2, ...)]&#125;</span></span><br><span class="line">request_records = defaultdict(<span class="built_in">list</span>)</span><br><span class="line">lock = asyncio.Lock()</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">check_rate_limit</span>(<span class="params">request: Request, max_requests: <span class="built_in">int</span> = <span class="number">10</span>, window_seconds: <span class="built_in">int</span> = <span class="number">60</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;检查请求是否超过限流&quot;&quot;&quot;</span></span><br><span class="line">    ip = request.client.host</span><br><span class="line">    now = datetime.now()</span><br><span class="line">    window_start = now - timedelta(seconds=window_seconds)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">with</span> lock:</span><br><span class="line">        <span class="comment"># 清理过期的记录</span></span><br><span class="line">        request_records[ip] = [</span><br><span class="line">            ts <span class="keyword">for</span> ts <span class="keyword">in</span> request_records[ip] <span class="keyword">if</span> ts &gt; window_start</span><br><span class="line">        ]</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 检查是否超过限制</span></span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(request_records[ip]) &gt;= max_requests:</span><br><span class="line">            <span class="keyword">raise</span> HTTPException(</span><br><span class="line">                status_code=<span class="number">429</span>,</span><br><span class="line">                detail=<span class="string">f&quot;Rate limit exceeded. Try again later.&quot;</span></span><br><span class="line">            )</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 记录当前请求</span></span><br><span class="line">        request_records[ip].append(now)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/api/data&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">get_data</span>(<span class="params">request: Request</span>):</span><br><span class="line">    <span class="keyword">await</span> check_rate_limit(request, max_requests=<span class="number">5</span>, window_seconds=<span class="number">60</span>)</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;data&quot;</span>: <span class="string">&quot;some data&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>说明：</p>
+<ul>
+<li>使用字典存储每个IP的请求时间戳</li>
+<li>每次请求前清理过期的记录</li>
+<li>达到上限时抛出 429 异常</li>
+<li>使用异步锁避免并发问题</li>
+</ul>
+<h3 id="方法4：使用装饰器类实现"><a href="#方法4：使用装饰器类实现" class="headerlink" title="方法4：使用装饰器类实现"></a>方法4：使用装饰器类实现</h3><p>更优雅的实现方式是使用装饰器类：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> functools <span class="keyword">import</span> wraps</span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> HTTPException, Request</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> defaultdict</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">RateLimiter</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, max_calls: <span class="built_in">int</span>, time_window: <span class="built_in">int</span></span>):</span><br><span class="line">        <span class="variable language_">self</span>.max_calls = max_calls</span><br><span class="line">        <span class="variable language_">self</span>.time_window = time_window</span><br><span class="line">        <span class="variable language_">self</span>.calls = defaultdict(<span class="built_in">list</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__call__</span>(<span class="params">self, func</span>):</span><br><span class="line"><span class="meta">        @wraps(<span class="params">func</span>)</span></span><br><span class="line">        <span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">wrapper</span>(<span class="params">request: Request, *args, **kwargs</span>):</span><br><span class="line">            ip = request.client.host</span><br><span class="line">            current_time = time.time()</span><br><span class="line"></span><br><span class="line">            <span class="comment"># 清理过期的调用记录</span></span><br><span class="line">            <span class="variable language_">self</span>.calls[ip] = [</span><br><span class="line">                t <span class="keyword">for</span> t <span class="keyword">in</span> <span class="variable language_">self</span>.calls[ip]</span><br><span class="line">                <span class="keyword">if</span> current_time - t &lt; <span class="variable language_">self</span>.time_window</span><br><span class="line">            ]</span><br><span class="line"></span><br><span class="line">            <span class="comment"># 检查是否超过限制</span></span><br><span class="line">            <span class="keyword">if</span> <span class="built_in">len</span>(<span class="variable language_">self</span>.calls[ip]) &gt;= <span class="variable language_">self</span>.max_calls:</span><br><span class="line">                <span class="keyword">raise</span> HTTPException(</span><br><span class="line">                    status_code=<span class="number">429</span>,</span><br><span class="line">                    detail=<span class="string">f&quot;Rate limit: <span class="subst">&#123;self.max_calls&#125;</span> calls per <span class="subst">&#123;self.time_window&#125;</span>s&quot;</span></span><br><span class="line">                )</span><br><span class="line"></span><br><span class="line">            <span class="comment"># 记录这次调用</span></span><br><span class="line">            <span class="variable language_">self</span>.calls[ip].append(current_time)</span><br><span class="line"></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">await</span> func(request, *args, **kwargs)</span><br><span class="line">        <span class="keyword">return</span> wrapper</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用</span></span><br><span class="line">rate_limiter = RateLimiter(max_calls=<span class="number">10</span>, time_window=<span class="number">60</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/api/limited-endpoint&quot;</span></span>)</span></span><br><span class="line"><span class="meta">@rate_limiter</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">limited_endpoint</span>(<span class="params">request: Request</span>):</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;This endpoint is rate limited&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="不同场景的限流策略"><a href="#不同场景的限流策略" class="headerlink" title="不同场景的限流策略"></a>不同场景的限流策略</h3><h4 id="全局限流"><a href="#全局限流" class="headerlink" title="全局限流"></a>全局限流</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.middleware(<span class="params"><span class="string">&quot;http&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">global_rate_limit</span>(<span class="params">request: Request, call_next</span>):</span><br><span class="line">    <span class="keyword">await</span> check_rate_limit(request, max_requests=<span class="number">100</span>, window_seconds=<span class="number">60</span>)</span><br><span class="line">    response = <span class="keyword">await</span> call_next(request)</span><br><span class="line">    <span class="keyword">return</span> response</span><br></pre></td></tr></table></figure>
+
+<h4 id="路由级限流"><a href="#路由级限流" class="headerlink" title="路由级限流"></a>路由级限流</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/api/public&quot;</span></span>)</span></span><br><span class="line"><span class="meta">@limiter.limit(<span class="params"><span class="string">&quot;100/minute&quot;</span></span>)  </span><span class="comment"># 宽松限制</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">public_api</span>(<span class="params">request: Request</span>):</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;public content&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/api/premium&quot;</span></span>)</span></span><br><span class="line"><span class="meta">@limiter.limit(<span class="params"><span class="string">&quot;1000/minute&quot;</span></span>)  </span><span class="comment"># 严格限制</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">premium_api</span>(<span class="params">request: Request</span>):</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;premium content&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="用户级限流（差异化）"><a href="#用户级限流（差异化）" class="headerlink" title="用户级限流（差异化）"></a>用户级限流（差异化）</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">get_user_tier</span>(<span class="params">request: Request</span>):</span><br><span class="line">    <span class="comment"># 假设从token中获取用户等级</span></span><br><span class="line">    token = request.headers.get(<span class="string">&quot;Authorization&quot;</span>, <span class="string">&quot;&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;vip&quot;</span> <span class="keyword">in</span> token:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;vip&quot;</span></span><br><span class="line">    <span class="keyword">elif</span> <span class="string">&quot;premium&quot;</span> <span class="keyword">in</span> token:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;premium&quot;</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;free&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/api/service&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">service</span>(<span class="params">request: Request</span>):</span><br><span class="line">    tier = get_user_tier(request)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> tier == <span class="string">&quot;vip&quot;</span>:</span><br><span class="line">        <span class="keyword">await</span> check_rate_limit(request, max_requests=<span class="number">1000</span>, window_seconds=<span class="number">60</span>)</span><br><span class="line">    <span class="keyword">elif</span> tier == <span class="string">&quot;premium&quot;</span>:</span><br><span class="line">        <span class="keyword">await</span> check_rate_limit(request, max_requests=<span class="number">100</span>, window_seconds=<span class="number">60</span>)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">await</span> check_rate_limit(request, max_requests=<span class="number">10</span>, window_seconds=<span class="number">60</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;tier&quot;</span>: tier&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="生产环境建议"><a href="#生产环境建议" class="headerlink" title="生产环境建议"></a>生产环境建议</h3><ol>
+<li><strong>使用 Redis 作为限流存储</strong>：支持分布式环境，避免多实例不一致</li>
+<li><strong>设置合理的限流参数</strong>：根据业务需求和服务器容量设置</li>
+<li><strong>返回友好错误信息</strong>：让用户知道限制和重试时间</li>
+<li><strong>添加监控</strong>：记录被限流的请求，分析是否存在异常行为</li>
+<li><strong>考虑降级策略</strong>：在系统压力过大时自动收紧限流</li>
+</ol>
+<p>自定义错误响应：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi.responses <span class="keyword">import</span> JSONResponse</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">RateLimitExceeded</span>(<span class="title class_ inherited__">HTTPException</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, retry_after: <span class="built_in">int</span></span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__(</span><br><span class="line">            status_code=<span class="number">429</span>,</span><br><span class="line">            detail=<span class="string">&quot;Too many requests&quot;</span>,</span><br><span class="line">            headers=&#123;<span class="string">&quot;Retry-After&quot;</span>: <span class="built_in">str</span>(retry_after)&#125;</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在限流检查中使用</span></span><br><span class="line"><span class="keyword">raise</span> RateLimitExceeded(retry_after=<span class="number">60</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="测试限流功能"><a href="#测试限流功能" class="headerlink" title="测试限流功能"></a>测试限流功能</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> asyncio</span><br><span class="line"><span class="keyword">import</span> httpx</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">test_rate_limit</span>():</span><br><span class="line">    client = httpx.AsyncClient()</span><br><span class="line">    tasks = [client.get(<span class="string">&quot;http://localhost:8000/api/test&quot;</span>) <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">10</span>)]</span><br><span class="line">    responses = <span class="keyword">await</span> asyncio.gather(*tasks)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i, resp <span class="keyword">in</span> <span class="built_in">enumerate</span>(responses):</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Request <span class="subst">&#123;i+<span class="number">1</span>&#125;</span>: <span class="subst">&#123;resp.status_code&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">if</span> resp.status_code == <span class="number">429</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;  Rate limited: <span class="subst">&#123;resp.json()&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">asyncio.run(test_rate_limit())</span><br></pre></td></tr></table></figure>
+
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li>简单场景：使用 <code>slowapi</code> 或 <code>fastapi-limiter</code></li>
+<li>分布式环境：必须使用 Redis 作为限流存储</li>
+<li>自定义需求：可以自己实现限流逻辑</li>
+<li>生产环境：添加监控和降级策略</li>
+</ul>
+<hr>
+<p>每日踩一坑，生活更轻松。</p>
+<p>本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/about/">关于</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/tags/">标签</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/projects/">项目</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">什么是接口限流？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%951%EF%BC%9A%E4%BD%BF%E7%94%A8-slowapi%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">方法1：使用 slowapi（推荐）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%952%EF%BC%9A%E4%BD%BF%E7%94%A8-fastapi-limiter"><span class="toc-number">1.3.</span> <span class="toc-text">方法2：使用 fastapi-limiter</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%953%EF%BC%9A%E8%87%AA%E5%AE%9A%E4%B9%89%E5%9F%BA%E4%BA%8E%E5%86%85%E5%AD%98%E7%9A%84%E9%99%90%E6%B5%81"><span class="toc-number">1.4.</span> <span class="toc-text">方法3：自定义基于内存的限流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%954%EF%BC%9A%E4%BD%BF%E7%94%A8%E8%A3%85%E9%A5%B0%E5%99%A8%E7%B1%BB%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.5.</span> <span class="toc-text">方法4：使用装饰器类实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8D%E5%90%8C%E5%9C%BA%E6%99%AF%E7%9A%84%E9%99%90%E6%B5%81%E7%AD%96%E7%95%A5"><span class="toc-number">1.6.</span> <span class="toc-text">不同场景的限流策略</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%A8%E5%B1%80%E9%99%90%E6%B5%81"><span class="toc-number">1.6.1.</span> <span class="toc-text">全局限流</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B7%AF%E7%94%B1%E7%BA%A7%E9%99%90%E6%B5%81"><span class="toc-number">1.6.2.</span> <span class="toc-text">路由级限流</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%94%A8%E6%88%B7%E7%BA%A7%E9%99%90%E6%B5%81%EF%BC%88%E5%B7%AE%E5%BC%82%E5%8C%96%EF%BC%89"><span class="toc-number">1.6.3.</span> <span class="toc-text">用户级限流（差异化）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.7.</span> <span class="toc-text">生产环境建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E9%99%90%E6%B5%81%E5%8A%9F%E8%83%BD"><span class="toc-number">1.8.</span> <span class="toc-text">测试限流功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.9.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/&text=No.169-fastapi中如何实现接口限流"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/&title=No.169-fastapi中如何实现接口限流"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/&is_video=false&description=No.169-fastapi中如何实现接口限流"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=No.169-fastapi中如何实现接口限流&body=Check out this article: https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/&title=No.169-fastapi中如何实现接口限流"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/&title=No.169-fastapi中如何实现接口限流"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/&title=No.169-fastapi中如何实现接口限流"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/&title=No.169-fastapi中如何实现接口限流"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/&name=No.169-fastapi中如何实现接口限流&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/&t=No.169-fastapi中如何实现接口限流"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Hope
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
