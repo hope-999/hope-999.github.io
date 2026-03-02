@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="导读在 fastapi 开发中，中间件是一个非常强大的工具。 想象一下，中间件就像是一个收费站。所有的车辆（请求）在进入高速公路（你的业务逻辑）之前，都要经过这个收费站。收费站可以检查车辆是否符合规定，记录车辆信息，甚至直接拦截某些车辆。 这篇文章将介绍 FastAPI 中间件的使用场景、实现方式和最佳实践。 什么是中间件？中间件是一个函数，它会在每个请求到达你的路由处理函数之前执行，在响应返回给">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FastAPI中间件使用实践">
+<meta property="og:url" content="https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/index.html">
+<meta property="og:site_name" content="Hope 的博客">
+<meta property="og:description" content="导读在 fastapi 开发中，中间件是一个非常强大的工具。 想象一下，中间件就像是一个收费站。所有的车辆（请求）在进入高速公路（你的业务逻辑）之前，都要经过这个收费站。收费站可以检查车辆是否符合规定，记录车辆信息，甚至直接拦截某些车辆。 这篇文章将介绍 FastAPI 中间件的使用场景、实现方式和最佳实践。 什么是中间件？中间件是一个函数，它会在每个请求到达你的路由处理函数之前执行，在响应返回给">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-01-30T09:00:00.000Z">
+<meta property="article:modified_time" content="2026-01-30T06:05:15.233Z">
+<meta property="article:author" content="Hope">
+<meta property="article:tag" content="fastapi">
+<meta property="article:tag" content="中间件">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>FastAPI中间件使用实践</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2026/02/27/No-171-fastapi%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E7%B3%BB%E7%BB%9F%E8%AF%A6%E8%A7%A3/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2026/01/28/No-169-fastapi%E4%B8%AD%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3%E9%99%90%E6%B5%81/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/&text=FastAPI中间件使用实践"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/&title=FastAPI中间件使用实践"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/&is_video=false&description=FastAPI中间件使用实践"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=FastAPI中间件使用实践&body=Check out this article: https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/&title=FastAPI中间件使用实践"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/&title=FastAPI中间件使用实践"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/&title=FastAPI中间件使用实践"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/&title=FastAPI中间件使用实践"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/&name=FastAPI中间件使用实践&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/&t=FastAPI中间件使用实践"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">什么是中间件？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E7%94%A8%E6%B3%95"><span class="toc-number">1.2.</span> <span class="toc-text">基础用法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E7%AE%80%E5%8D%95%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-number">1.2.1.</span> <span class="toc-text">创建简单中间件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%97%B6%E9%97%B4"><span class="toc-number">1.2.2.</span> <span class="toc-text">计算请求处理时间</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CORS-%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-number">1.3.</span> <span class="toc-text">CORS 中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%B7%E6%B1%82-ID-%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-number">1.4.</span> <span class="toc-text">请求 ID 中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A4%E8%AF%81%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-number">1.5.</span> <span class="toc-text">认证中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%A5%E5%BF%97%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-number">1.6.</span> <span class="toc-text">日志中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%82%E5%B8%B8%E6%8D%95%E8%8E%B7%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-number">1.7.</span> <span class="toc-text">异常捕获中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%89%A7%E8%A1%8C%E9%A1%BA%E5%BA%8F"><span class="toc-number">1.8.</span> <span class="toc-text">中间件执行顺序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B7%B3%E8%BF%87%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-number">1.9.</span> <span class="toc-text">跳过中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%B8%8E%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">1.10.</span> <span class="toc-text">中间件与依赖注入的区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E4%B8%AD%E9%97%B4%E4%BB%B6%E5%BA%93"><span class="toc-number">1.11.</span> <span class="toc-text">常见中间件库</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#GZip-%E5%8E%8B%E7%BC%A9"><span class="toc-number">1.11.1.</span> <span class="toc-text">GZip 压缩</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#HTTPS-%E9%87%8D%E5%AE%9A%E5%90%91"><span class="toc-number">1.11.2.</span> <span class="toc-text">HTTPS 重定向</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%A7%E8%83%BD%E8%80%83%E8%99%91"><span class="toc-number">1.12.</span> <span class="toc-text">性能考虑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.13.</span> <span class="toc-text">生产环境建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.14.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        FastAPI中间件使用实践
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Hope</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2026-01-30T09:00:00.000Z" class="dt-published" itemprop="datePublished">2026-01-30</time>
+        
+        (Updated: <time datetime="2026-01-30T06:05:15.233Z" class="dt-updated" itemprop="dateModified">2026-01-30</time>)
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/fastapi/" rel="tag">fastapi</a>, <a class="p-category" href="/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/" rel="tag">中间件</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="导读"><a href="#导读" class="headerlink" title="导读"></a>导读</h2><p>在 <code>fastapi</code> 开发中，中间件是一个非常强大的工具。</p>
+<p>想象一下，中间件就像是一个收费站。所有的车辆（请求）在进入高速公路（你的业务逻辑）之前，都要经过这个收费站。收费站可以检查车辆是否符合规定，记录车辆信息，甚至直接拦截某些车辆。</p>
+<p>这篇文章将介绍 FastAPI 中间件的使用场景、实现方式和最佳实践。</p>
+<h3 id="什么是中间件？"><a href="#什么是中间件？" class="headerlink" title="什么是中间件？"></a>什么是中间件？</h3><p>中间件是一个函数，它会在每个请求到达你的路由处理函数之前执行，在响应返回给客户端之前再次执行。中间件的典型执行流程：</p>
+<ol>
+<li>接收请求</li>
+<li>执行中间件代码（前置处理）</li>
+<li>调用实际的路由处理函数</li>
+<li>执行中间件代码（后置处理）</li>
+<li>返回响应</li>
+</ol>
+<h3 id="基础用法"><a href="#基础用法" class="headerlink" title="基础用法"></a>基础用法</h3><h4 id="创建简单中间件"><a href="#创建简单中间件" class="headerlink" title="创建简单中间件"></a>创建简单中间件</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, Request</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.middleware(<span class="params"><span class="string">&quot;http&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">log_requests</span>(<span class="params">request: Request, call_next</span>):</span><br><span class="line">    <span class="comment"># 前置处理：请求到达路由之前</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;请求方法: <span class="subst">&#123;request.method&#125;</span>, 路径: <span class="subst">&#123;request.url.path&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 调用下一个中间件或路由处理函数</span></span><br><span class="line">    response = <span class="keyword">await</span> call_next(request)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 后置处理：响应返回之前</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;响应状态码: <span class="subst">&#123;response.status_code&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> response</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">root</span>():</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;Hello World&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>执行顺序：</p>
+<ol>
+<li><code>log_requests</code> 前置代码</li>
+<li>路由处理函数 <code>root</code></li>
+<li><code>log_requests</code> 后置代码</li>
+<li><code>root</code> 返回响应</li>
+</ol>
+<h4 id="计算请求处理时间"><a href="#计算请求处理时间" class="headerlink" title="计算请求处理时间"></a>计算请求处理时间</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, Request</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.middleware(<span class="params"><span class="string">&quot;http&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">add_process_time_header</span>(<span class="params">request: Request, call_next</span>):</span><br><span class="line">    start_time = time.time()</span><br><span class="line"></span><br><span class="line">    response = <span class="keyword">await</span> call_next(request)</span><br><span class="line"></span><br><span class="line">    process_time = time.time() - start_time</span><br><span class="line">    response.headers[<span class="string">&quot;X-Process-Time&quot;</span>] = <span class="built_in">str</span>(process_time)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> response</span><br></pre></td></tr></table></figure>
+
+<p>这个中间件会在响应头中添加请求处理时间，方便性能监控。</p>
+<h3 id="CORS-中间件"><a href="#CORS-中间件" class="headerlink" title="CORS 中间件"></a>CORS 中间件</h3><p>跨域资源共享（CORS）是 Web 开发中常见的需求：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI</span><br><span class="line"><span class="keyword">from</span> fastapi.middleware.cors <span class="keyword">import</span> CORSMiddleware</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line">app.add_middleware(</span><br><span class="line">    CORSMiddleware,</span><br><span class="line">    allow_origins=[<span class="string">&quot;http://localhost:3000&quot;</span>, <span class="string">&quot;https://example.com&quot;</span>],  <span class="comment"># 允许的源</span></span><br><span class="line">    allow_credentials=<span class="literal">True</span>,  <span class="comment"># 允许携带 cookies</span></span><br><span class="line">    allow_methods=[<span class="string">&quot;*&quot;</span>],  <span class="comment"># 允许所有 HTTP 方法</span></span><br><span class="line">    allow_headers=[<span class="string">&quot;*&quot;</span>],  <span class="comment"># 允许所有请求头</span></span><br><span class="line">    expose_headers=[<span class="string">&quot;X-Custom-Header&quot;</span>],  <span class="comment"># 暴露给前端的自定义响应头</span></span><br><span class="line">    max_age=<span class="number">600</span>,  <span class="comment"># 预检请求的缓存时间（秒）</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意</strong>：在生产环境中，应该明确指定 <code>allow_origins</code>，而不是使用 <code>[&quot;*&quot;]</code>。</p>
+<h3 id="请求-ID-中间件"><a href="#请求-ID-中间件" class="headerlink" title="请求 ID 中间件"></a>请求 ID 中间件</h3><p>为每个请求生成唯一标识，方便日志追踪：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> uuid</span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, Request</span><br><span class="line"><span class="keyword">from</span> starlette.middleware.base <span class="keyword">import</span> BaseHTTPMiddleware</span><br><span class="line"><span class="keyword">from</span> starlette.types <span class="keyword">import</span> ASGIApp</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">RequestIDMiddleware</span>(<span class="title class_ inherited__">BaseHTTPMiddleware</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, app: ASGIApp</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__(app)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">dispatch</span>(<span class="params">self, request: Request, call_next</span>):</span><br><span class="line">        <span class="comment"># 生成或获取请求 ID</span></span><br><span class="line">        request_id = request.headers.get(<span class="string">&quot;X-Request-ID&quot;</span>, <span class="built_in">str</span>(uuid.uuid4()))</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 添加到请求状态</span></span><br><span class="line">        request.state.request_id = request_id</span><br><span class="line"></span><br><span class="line">        response = <span class="keyword">await</span> call_next(request)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 在响应头中返回请求 ID</span></span><br><span class="line">        response.headers[<span class="string">&quot;X-Request-ID&quot;</span>] = request_id</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> response</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line">app.add_middleware(RequestIDMiddleware)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">root</span>(<span class="params">request: Request</span>):</span><br><span class="line">    <span class="comment"># 在路由中使用请求 ID</span></span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;request_id&quot;</span>: request.state.request_id&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="认证中间件"><a href="#认证中间件" class="headerlink" title="认证中间件"></a>认证中间件</h3><p>实现基础的认证逻辑：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, Request, HTTPException, Depends</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.middleware(<span class="params"><span class="string">&quot;http&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">verify_token</span>(<span class="params">request: Request, call_next</span>):</span><br><span class="line">    <span class="comment"># 跳过某些路径的验证</span></span><br><span class="line">    <span class="keyword">if</span> request.url.path <span class="keyword">in</span> [<span class="string">&quot;/docs&quot;</span>, <span class="string">&quot;/openapi.json&quot;</span>, <span class="string">&quot;/health&quot;</span>]:</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">await</span> call_next(request)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 获取 token</span></span><br><span class="line">    token = request.headers.get(<span class="string">&quot;Authorization&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> token:</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">401</span>, detail=<span class="string">&quot;未提供认证令牌&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 简单验证（实际应该验证 JWT 或查询数据库）</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> token.startswith(<span class="string">&quot;Bearer &quot;</span>):</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">401</span>, detail=<span class="string">&quot;无效的令牌格式&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 可以将用户信息存入 request.state 供后续使用</span></span><br><span class="line">    request.state.user = <span class="string">&quot;user123&quot;</span>  <span class="comment"># 实际应该解析 token 获取用户信息</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">await</span> call_next(request)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/protected&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">protected</span>(<span class="params">request: Request</span>):</span><br><span class="line">    <span class="comment"># 使用 request.state 中的用户信息</span></span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;这是一个受保护的接口&quot;</span>, <span class="string">&quot;user&quot;</span>: request.state.user&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="日志中间件"><a href="#日志中间件" class="headerlink" title="日志中间件"></a>日志中间件</h3><p>更完善的日志记录：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> logging</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> datetime</span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, Request</span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置日志</span></span><br><span class="line">logging.basicConfig(</span><br><span class="line">    level=logging.INFO,</span><br><span class="line">    <span class="built_in">format</span>=<span class="string">&quot;%(asctime)s - %(name)s - %(levelname)s - %(message)s&quot;</span></span><br><span class="line">)</span><br><span class="line">logger = logging.getLogger(<span class="string">&quot;api&quot;</span>)</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.middleware(<span class="params"><span class="string">&quot;http&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">log_requests</span>(<span class="params">request: Request, call_next</span>):</span><br><span class="line">    start_time = datetime.now()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 记录请求信息</span></span><br><span class="line">    log_data = &#123;</span><br><span class="line">        <span class="string">&quot;method&quot;</span>: request.method,</span><br><span class="line">        <span class="string">&quot;path&quot;</span>: request.url.path,</span><br><span class="line">        <span class="string">&quot;client_ip&quot;</span>: request.client.host,</span><br><span class="line">        <span class="string">&quot;user_agent&quot;</span>: request.headers.get(<span class="string">&quot;user-agent&quot;</span>),</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    response = <span class="keyword">await</span> call_next(request)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 计算处理时间</span></span><br><span class="line">    process_time = (datetime.now() - start_time).total_seconds()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 更新日志数据</span></span><br><span class="line">    log_data.update(&#123;</span><br><span class="line">        <span class="string">&quot;status_code&quot;</span>: response.status_code,</span><br><span class="line">        <span class="string">&quot;process_time_ms&quot;</span>: <span class="built_in">round</span>(process_time * <span class="number">1000</span>, <span class="number">2</span>),</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 记录日志</span></span><br><span class="line">    logger.info(json.dumps(log_data))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> response</span><br></pre></td></tr></table></figure>
+
+<h3 id="异常捕获中间件"><a href="#异常捕获中间件" class="headerlink" title="异常捕获中间件"></a>异常捕获中间件</h3><p>统一处理异常：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, Request, HTTPException</span><br><span class="line"><span class="keyword">from</span> fastapi.responses <span class="keyword">import</span> JSONResponse</span><br><span class="line"><span class="keyword">import</span> traceback</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ExceptionHandlerMiddleware</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, app</span>):</span><br><span class="line">        <span class="variable language_">self</span>.app = app</span><br><span class="line"></span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">__call__</span>(<span class="params">self, scope, receive, send</span>):</span><br><span class="line">        <span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">send_wrapper</span>(<span class="params">message</span>):</span><br><span class="line">            <span class="keyword">if</span> message[<span class="string">&quot;type&quot;</span>] == <span class="string">&quot;http.response.start&quot;</span>:</span><br><span class="line">                <span class="comment"># 可以在这里修改响应状态码</span></span><br><span class="line">                <span class="keyword">pass</span></span><br><span class="line">            <span class="keyword">await</span> send(message)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            <span class="keyword">await</span> <span class="variable language_">self</span>.app(scope, receive, send_wrapper)</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            <span class="comment"># 统一异常处理</span></span><br><span class="line">            error_response = JSONResponse(</span><br><span class="line">                status_code=<span class="number">500</span>,</span><br><span class="line">                content=&#123;</span><br><span class="line">                    <span class="string">&quot;error&quot;</span>: <span class="string">&quot;Internal Server Error&quot;</span>,</span><br><span class="line">                    <span class="string">&quot;message&quot;</span>: <span class="built_in">str</span>(e),</span><br><span class="line">                    <span class="string">&quot;detail&quot;</span>: traceback.format_exc() <span class="keyword">if</span> app.debug <span class="keyword">else</span> <span class="literal">None</span>,</span><br><span class="line">                &#125;</span><br><span class="line">            )</span><br><span class="line"></span><br><span class="line">            <span class="keyword">await</span> error_response(scope, receive, send)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 注意：FastAPI 有内置的异常处理机制，通常使用 exception_handler 更合适</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 推荐方式：使用全局异常处理器</span></span><br><span class="line"><span class="meta">@app.exception_handler(<span class="params">Exception</span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">global_exception_handler</span>(<span class="params">request: Request, exc: Exception</span>):</span><br><span class="line">    <span class="keyword">return</span> JSONResponse(</span><br><span class="line">        status_code=<span class="number">500</span>,</span><br><span class="line">        content=&#123;</span><br><span class="line">            <span class="string">&quot;error&quot;</span>: <span class="string">&quot;Internal Server Error&quot;</span>,</span><br><span class="line">            <span class="string">&quot;message&quot;</span>: <span class="built_in">str</span>(exc),</span><br><span class="line">        &#125;</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.exception_handler(<span class="params">HTTPException</span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">http_exception_handler</span>(<span class="params">request: Request, exc: HTTPException</span>):</span><br><span class="line">    <span class="keyword">return</span> JSONResponse(</span><br><span class="line">        status_code=exc.status_code,</span><br><span class="line">        content=&#123;</span><br><span class="line">            <span class="string">&quot;error&quot;</span>: exc.detail,</span><br><span class="line">            <span class="string">&quot;status_code&quot;</span>: exc.status_code,</span><br><span class="line">        &#125;</span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
+
+<h3 id="中间件执行顺序"><a href="#中间件执行顺序" class="headerlink" title="中间件执行顺序"></a>中间件执行顺序</h3><p>中间件的执行顺序很重要。FastAPI 按照添加的顺序执行中间件：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, Request</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.middleware(<span class="params"><span class="string">&quot;http&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">middleware1</span>(<span class="params">request: Request, call_next</span>):</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;中间件1：前置&quot;</span>)</span><br><span class="line">    response = <span class="keyword">await</span> call_next(request)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;中间件1：后置&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> response</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.middleware(<span class="params"><span class="string">&quot;http&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">middleware2</span>(<span class="params">request: Request, call_next</span>):</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;中间件2：前置&quot;</span>)</span><br><span class="line">    response = <span class="keyword">await</span> call_next(request)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;中间件2：后置&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> response</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">root</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;路由处理&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;Hello&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行顺序：</span></span><br><span class="line"><span class="comment"># 中间件1：前置</span></span><br><span class="line"><span class="comment"># 中间件2：前置</span></span><br><span class="line"><span class="comment"># 路由处理</span></span><br><span class="line"><span class="comment"># 中间件2：后置</span></span><br><span class="line"><span class="comment"># 中间件1：后置</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="跳过中间件"><a href="#跳过中间件" class="headerlink" title="跳过中间件"></a>跳过中间件</h3><p>有时需要为某些路由跳过中间件：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, Request</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义不需要认证的路径</span></span><br><span class="line">PUBLIC_PATHS = &#123;</span><br><span class="line">    <span class="string">&quot;/&quot;</span>,</span><br><span class="line">    <span class="string">&quot;/health&quot;</span>,</span><br><span class="line">    <span class="string">&quot;/docs&quot;</span>,</span><br><span class="line">    <span class="string">&quot;/openapi.json&quot;</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.middleware(<span class="params"><span class="string">&quot;http&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">auth_middleware</span>(<span class="params">request: Request, call_next</span>):</span><br><span class="line">    <span class="comment"># 跳过公共路径</span></span><br><span class="line">    <span class="keyword">if</span> request.url.path <span class="keyword">in</span> PUBLIC_PATHS:</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">await</span> call_next(request)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 执行认证逻辑</span></span><br><span class="line">    token = request.headers.get(<span class="string">&quot;Authorization&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> token:</span><br><span class="line">        <span class="keyword">return</span> JSONResponse(status_code=<span class="number">401</span>, content=&#123;<span class="string">&quot;error&quot;</span>: <span class="string">&quot;Unauthorized&quot;</span>&#125;)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">await</span> call_next(request)</span><br></pre></td></tr></table></figure>
+
+<p>或者使用路由分组：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, Request</span><br><span class="line"><span class="keyword">from</span> fastapi.responses <span class="keyword">import</span> JSONResponse</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line">public_router = APIRouter()</span><br><span class="line">protected_router = APIRouter()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 认证中间件只应用到 protected_router</span></span><br><span class="line"><span class="meta">@protected_router.middleware(<span class="params"><span class="string">&quot;http&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">auth_middleware</span>(<span class="params">request: Request, call_next</span>):</span><br><span class="line">    token = request.headers.get(<span class="string">&quot;Authorization&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> token:</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">401</span>, detail=<span class="string">&quot;Unauthorized&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">await</span> call_next(request)</span><br><span class="line"></span><br><span class="line"><span class="meta">@public_router.get(<span class="params"><span class="string">&quot;/health&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">health</span>():</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;status&quot;</span>: <span class="string">&quot;ok&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@protected_router.get(<span class="params"><span class="string">&quot;/user&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">get_user</span>():</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;user&quot;</span>: <span class="string">&quot;info&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line">app.include_router(public_router)</span><br><span class="line">app.include_router(protected_router, prefix=<span class="string">&quot;/api&quot;</span>, dependencies=[Depends(verify_token)])</span><br></pre></td></tr></table></figure>
+
+<h3 id="中间件与依赖注入的区别"><a href="#中间件与依赖注入的区别" class="headerlink" title="中间件与依赖注入的区别"></a>中间件与依赖注入的区别</h3><p>中间件和依赖注入有些相似，但适用场景不同：</p>
+<p><strong>中间件的特点：</strong></p>
+<ul>
+<li>对所有请求生效（除非明确跳过）</li>
+<li>适合全局功能（日志、CORS、全局认证）</li>
+<li>可以修改请求和响应</li>
+<li>执行顺序固定</li>
+</ul>
+<p><strong>依赖注入的特点：</strong></p>
+<ul>
+<li>更灵活，可以按需使用</li>
+<li>适合特定的路由或参数</li>
+<li>适合资源管理（数据库连接、用户权限检查）</li>
+<li>可以传递参数</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 中间件示例</span></span><br><span class="line"><span class="meta">@app.middleware(<span class="params"><span class="string">&quot;http&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">global_middleware</span>(<span class="params">request: Request, call_next</span>):</span><br><span class="line">    <span class="comment"># 对所有请求生效</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">await</span> call_next(request)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 依赖注入示例</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">get_current_user</span>(<span class="params">token: <span class="built_in">str</span> = Header(<span class="params">...</span>)</span>):</span><br><span class="line">    <span class="comment"># 只在需要的路由中使用</span></span><br><span class="line">    <span class="keyword">return</span> user</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/profile&quot;</span>, dependencies=[Depends(<span class="params">get_current_user</span>)]</span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">profile</span>():</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;profile&quot;</span>: <span class="string">&quot;data&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="常见中间件库"><a href="#常见中间件库" class="headerlink" title="常见中间件库"></a>常见中间件库</h3><h4 id="GZip-压缩"><a href="#GZip-压缩" class="headerlink" title="GZip 压缩"></a>GZip 压缩</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI</span><br><span class="line"><span class="keyword">from</span> fastapi.middleware.gzip <span class="keyword">import</span> GZipMiddleware</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line">app.add_middleware(GZipMiddleware, minimum_size=<span class="number">1000</span>)  <span class="comment"># 大于 1KB 的响应才压缩</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="HTTPS-重定向"><a href="#HTTPS-重定向" class="headerlink" title="HTTPS 重定向"></a>HTTPS 重定向</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, Request</span><br><span class="line"><span class="keyword">from</span> fastapi.responses <span class="keyword">import</span> RedirectResponse</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.middleware(<span class="params"><span class="string">&quot;http&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">https_redirect</span>(<span class="params">request: Request, call_next</span>):</span><br><span class="line">    <span class="comment"># 在生产环境中应该由反向代理（如 Nginx）处理</span></span><br><span class="line">    <span class="keyword">if</span> request.url.scheme != <span class="string">&quot;https&quot;</span> <span class="keyword">and</span> request.client.host != <span class="string">&quot;127.0.0.1&quot;</span>:</span><br><span class="line">        url = request.url.replace(scheme=<span class="string">&quot;https&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> RedirectResponse(url=<span class="built_in">str</span>(url))</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">await</span> call_next(request)</span><br></pre></td></tr></table></figure>
+
+<h3 id="性能考虑"><a href="#性能考虑" class="headerlink" title="性能考虑"></a>性能考虑</h3><p>中间件会增加每个请求的处理开销，应该注意：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.middleware(<span class="params"><span class="string">&quot;http&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">performance_monitor</span>(<span class="params">request: Request, call_next</span>):</span><br><span class="line">    start_time = time.perf_counter()</span><br><span class="line"></span><br><span class="line">    response = <span class="keyword">await</span> call_next(request)</span><br><span class="line"></span><br><span class="line">    process_time = time.perf_counter() - start_time</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 性能敏感：只记录慢请求</span></span><br><span class="line">    <span class="keyword">if</span> process_time &gt; <span class="number">0.5</span>:  <span class="comment"># 超过 500ms 才记录</span></span><br><span class="line">        logger.warning(<span class="string">f&quot;慢请求: <span class="subst">&#123;request.url.path&#125;</span> 耗时 <span class="subst">&#123;process_time:<span class="number">.3</span>f&#125;</span>s&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> response</span><br></pre></td></tr></table></figure>
+
+<h3 id="生产环境建议"><a href="#生产环境建议" class="headerlink" title="生产环境建议"></a>生产环境建议</h3><ol>
+<li><strong>使用专业的日志库</strong>（如 structlog）而不是 print</li>
+<li><strong>将请求 ID 记录到所有日志中</strong>，方便追踪</li>
+<li><strong>在生产环境中不暴露详细错误信息</strong></li>
+<li><strong>考虑使用 Sentry 等错误追踪服务</strong></li>
+<li><strong>监控慢请求和异常</strong></li>
+</ol>
+<p>完整的中间件配置示例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, Request, HTTPException</span><br><span class="line"><span class="keyword">from</span> fastapi.middleware.cors <span class="keyword">import</span> CORSMiddleware</span><br><span class="line"><span class="keyword">from</span> fastapi.middleware.gzip <span class="keyword">import</span> GZipMiddleware</span><br><span class="line"><span class="keyword">from</span> fastapi.responses <span class="keyword">import</span> JSONResponse</span><br><span class="line"><span class="keyword">import</span> logging</span><br><span class="line"><span class="keyword">import</span> uuid</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置日志</span></span><br><span class="line">logging.basicConfig(level=logging.INFO)</span><br><span class="line">logger = logging.getLogger(<span class="string">&quot;api&quot;</span>)</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="comment"># CORS 中间件</span></span><br><span class="line">app.add_middleware(</span><br><span class="line">    CORSMiddleware,</span><br><span class="line">    allow_origins=[<span class="string">&quot;https://yourdomain.com&quot;</span>],</span><br><span class="line">    allow_credentials=<span class="literal">True</span>,</span><br><span class="line">    allow_methods=[<span class="string">&quot;*&quot;</span>],</span><br><span class="line">    allow_headers=[<span class="string">&quot;*&quot;</span>],</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># GZip 压缩</span></span><br><span class="line">app.add_middleware(GZipMiddleware, minimum_size=<span class="number">1000</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 请求 ID 中间件</span></span><br><span class="line"><span class="meta">@app.middleware(<span class="params"><span class="string">&quot;http&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">request_id_middleware</span>(<span class="params">request: Request, call_next</span>):</span><br><span class="line">    request_id = request.headers.get(<span class="string">&quot;X-Request-ID&quot;</span>, <span class="built_in">str</span>(uuid.uuid4()))</span><br><span class="line">    request.state.request_id = request_id</span><br><span class="line"></span><br><span class="line">    response = <span class="keyword">await</span> call_next(request)</span><br><span class="line">    response.headers[<span class="string">&quot;X-Request-ID&quot;</span>] = request_id</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> response</span><br><span class="line"></span><br><span class="line"><span class="comment"># 日志中间件</span></span><br><span class="line"><span class="meta">@app.middleware(<span class="params"><span class="string">&quot;http&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">logging_middleware</span>(<span class="params">request: Request, call_next</span>):</span><br><span class="line">    start_time = time.time()</span><br><span class="line"></span><br><span class="line">    response = <span class="keyword">await</span> call_next(request)</span><br><span class="line"></span><br><span class="line">    process_time = time.time() - start_time</span><br><span class="line">    logger.info(</span><br><span class="line">        <span class="string">f&quot;Request: <span class="subst">&#123;request.method&#125;</span> <span class="subst">&#123;request.url.path&#125;</span> | &quot;</span></span><br><span class="line">        <span class="string">f&quot;Status: <span class="subst">&#123;response.status_code&#125;</span> | &quot;</span></span><br><span class="line">        <span class="string">f&quot;Time: <span class="subst">&#123;process_time:<span class="number">.3</span>f&#125;</span>s | &quot;</span></span><br><span class="line">        <span class="string">f&quot;ID: <span class="subst">&#123;request.state.request_id&#125;</span>&quot;</span></span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> response</span><br><span class="line"></span><br><span class="line"><span class="comment"># 全局异常处理</span></span><br><span class="line"><span class="meta">@app.exception_handler(<span class="params">Exception</span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">global_exception_handler</span>(<span class="params">request: Request, exc: Exception</span>):</span><br><span class="line">    logger.error(</span><br><span class="line">        <span class="string">f&quot;Error: <span class="subst">&#123;<span class="built_in">str</span>(exc)&#125;</span> | &quot;</span></span><br><span class="line">        <span class="string">f&quot;Request: <span class="subst">&#123;request.url.path&#125;</span> | &quot;</span></span><br><span class="line">        <span class="string">f&quot;ID: <span class="subst">&#123;request.state.request_id&#125;</span>&quot;</span></span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">return</span> JSONResponse(</span><br><span class="line">        status_code=<span class="number">500</span>,</span><br><span class="line">        content=&#123;<span class="string">&quot;error&quot;</span>: <span class="string">&quot;Internal Server Error&quot;</span>&#125;</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/health&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">health</span>():</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;status&quot;</span>: <span class="string">&quot;ok&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li>中间件适合全局功能：日志、认证、CORS、压缩</li>
+<li>注意中间件的执行顺序</li>
+<li>可以跳过特定路径的中间件</li>
+<li>中间件和依赖注入各有用途，合理选择</li>
+<li>生产环境要考虑性能和安全性</li>
+</ul>
+<hr>
+<p>每日踩一坑，生活更轻松。</p>
+<p>本期分享就到这里啦，祝君在测开之路上越走越顺，越走越远。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/about/">关于</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/tags/">标签</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/projects/">项目</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%AF%BB"><span class="toc-number">1.</span> <span class="toc-text">导读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">什么是中间件？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E7%94%A8%E6%B3%95"><span class="toc-number">1.2.</span> <span class="toc-text">基础用法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E7%AE%80%E5%8D%95%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-number">1.2.1.</span> <span class="toc-text">创建简单中间件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%97%B6%E9%97%B4"><span class="toc-number">1.2.2.</span> <span class="toc-text">计算请求处理时间</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CORS-%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-number">1.3.</span> <span class="toc-text">CORS 中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%B7%E6%B1%82-ID-%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-number">1.4.</span> <span class="toc-text">请求 ID 中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A4%E8%AF%81%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-number">1.5.</span> <span class="toc-text">认证中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%A5%E5%BF%97%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-number">1.6.</span> <span class="toc-text">日志中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%82%E5%B8%B8%E6%8D%95%E8%8E%B7%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-number">1.7.</span> <span class="toc-text">异常捕获中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%89%A7%E8%A1%8C%E9%A1%BA%E5%BA%8F"><span class="toc-number">1.8.</span> <span class="toc-text">中间件执行顺序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B7%B3%E8%BF%87%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-number">1.9.</span> <span class="toc-text">跳过中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%B8%8E%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">1.10.</span> <span class="toc-text">中间件与依赖注入的区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E4%B8%AD%E9%97%B4%E4%BB%B6%E5%BA%93"><span class="toc-number">1.11.</span> <span class="toc-text">常见中间件库</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#GZip-%E5%8E%8B%E7%BC%A9"><span class="toc-number">1.11.1.</span> <span class="toc-text">GZip 压缩</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#HTTPS-%E9%87%8D%E5%AE%9A%E5%90%91"><span class="toc-number">1.11.2.</span> <span class="toc-text">HTTPS 重定向</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%A7%E8%83%BD%E8%80%83%E8%99%91"><span class="toc-number">1.12.</span> <span class="toc-text">性能考虑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.13.</span> <span class="toc-text">生产环境建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.14.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/&text=FastAPI中间件使用实践"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/&title=FastAPI中间件使用实践"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/&is_video=false&description=FastAPI中间件使用实践"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=FastAPI中间件使用实践&body=Check out this article: https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/&title=FastAPI中间件使用实践"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/&title=FastAPI中间件使用实践"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/&title=FastAPI中间件使用实践"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/&title=FastAPI中间件使用实践"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/&name=FastAPI中间件使用实践&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://hope-999.github.io/2026/01/30/No-170-fastapi%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%BD%BF%E7%94%A8%E5%AE%9E%E8%B7%B5/&t=FastAPI中间件使用实践"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Hope
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/projects/">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
